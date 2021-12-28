@@ -1,0 +1,24 @@
+This readme file described all variables that are saved in the project
+subject_num - in file name
+phase - training/experiment
+trial - trial number
+left_person - a number between 1 and 4 describing the person offered on the left side of the screen - referring to the numbers from "humansLst"
+left_person_objects - the objects offered by the left_person, fruit(1/2) and clothing (1/2) - according to the variable "model"
+right_person - a number between 1 and 4 describing the person offered on the right side of the screen 
+right_person_objects - the objects offered by the right_person, fruit(1/2) and clothing (1/2) - according to the variable "model"
+keypress1 - the key used to select the person choice - could be "s" or "k" and is used to infer location
+rt1 - response time of person choice
+ch_person - the person number indicating the chosen person
+ch_objects - the objects offered by the chosen person 
+unch_person - the person number indicating the unchosen person
+unch_objects - the objects offered by the unchosen person
+exp_value_fruit - the expected value to win the chosen fruit
+reward_fruit - the reward outcome for the fruit
+exp_value_wear - the expected value to win the chosen clothing
+reward_wear - the reward outcome for the clothing
+keypress2 - the key used to select the second choice (could be either fruit or wear, depending which was presented first)
+rt2 - response time to make the second choice
+keypress3 - the key used to select the third choice (could be either fruit or wear, depending which was presented first)
+rt3 - response time to make the third choice
+fruit_wear_first - an indicator of which object outcome was presented first
+iti - inter-trial-interval
