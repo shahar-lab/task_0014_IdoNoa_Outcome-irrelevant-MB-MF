@@ -162,7 +162,7 @@ def mytrials(
             win.update()
             core.wait(1)
             dataFile.write(
-                "%s,%i,%i,%s,%i,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n"
+                "%s,%f,%f,%s,%f,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n"
                 % (
                     phase,  # s
                     t,  # i
@@ -206,7 +206,7 @@ def mytrials(
             PresentedStim = RStim
         elif keys == "space":
             dataFile.write(
-                "%s,%i,%i,%s,%i,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n"
+                "%s,%f,%f,%s,%f,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n"
                 % (
                     phase,  # s
                     t,  # i
@@ -242,7 +242,7 @@ def mytrials(
             win.update()
             core.wait(1)
             dataFile.write(
-                "%s,%i,%i,%s,%i,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n"
+                "%s,%f,%f,%s,%f,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n"
                 % (
                     phase,  # s
                     t,  # i
@@ -337,7 +337,7 @@ def mytrials(
             core.wait(1)
             # write the trial data and continue to next trial
             dataFile.write(
-                "%s,%i,%i,%s,%i,%s,%s,%f,%i,%s,%i,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n"
+                "%s,%f,%f,%s,%f,%s,%s,%f,%f,%s,%f,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n"
                 % (
                     phase,  # s
                     t,  # i
@@ -374,7 +374,7 @@ def mytrials(
             win.update()
             core.wait(1)
             dataFile.write(
-                "%s,%i,%i,%s,%i,%s,%s,%f,%i,%s,%i,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n"
+                "%s,%f,%f,%s,%f,%s,%s,%f,%f,%s,%f,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n"
                 % (
                     phase,  # s
                     t,  # i
@@ -434,7 +434,7 @@ def mytrials(
             win.update()
             core.wait(1)
             dataFile.write(
-                "%s,%i,%i,%s,%i,%s,%s,%f,%i,%s,%i,%s,%f,%i,%f,%i,%s,%f,%f,%f,%s,%f\n"
+                "%s,%f,%f,%s,%f,%s,%s,%f,%f,%s,%f,%s,%f,%f,%f,%f,%s,%f,%f,%f,%s,%f\n"
                 % (
                     phase,  # s
                     t,  # i
@@ -477,7 +477,7 @@ def mytrials(
                 ProbsFruit = [np.nan, np.nan, np.nan, np.nan]
                 ResultFruit = np.nan
                 dataFile.write(
-                    "%s,%i,%i,%s,%i,%s,%s,%f,%i,%s,%i,%s,%f,%i,%f,%i,%s,%f,%f,%f,%s,%f\n"
+                    "%s,%f,%f,%s,%f,%s,%s,%f,%f,%s,%f,%s,%f,%f,%f,%f,%s,%f,%f,%f,%s,%f\n"
                     % (
                         phase,  # s
                         t,  # i
@@ -522,7 +522,7 @@ def mytrials(
         PresentedStim.autoDraw = False
 
         dataFile.write(
-            "%s,%i,%i,%s,%i,%s,%s,%f,%i,%s,%i,%s,%f,%i,%f,%i,%s,%f,%s,%f,%s,%f\n"
+            "%s,%f,%f,%s,%f,%s,%s,%f,%f,%s,%f,%s,%f,%f,%f,%f,%s,%f,%s,%f,%s,%f\n"
             % (
                 phase,  # s
                 t,  # i
@@ -629,4 +629,3 @@ start_test.draw()
 win.update()
 event.waitKeys(keyList=["space"])
 mytrials(subject_num, "test", 250, 1, 6, 0.5, 0.5, 0.5, 1, 1)
-

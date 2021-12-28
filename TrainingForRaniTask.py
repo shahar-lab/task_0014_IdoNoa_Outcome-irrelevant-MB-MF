@@ -31,11 +31,11 @@ humanLst = [
     "w1.png",
     "w2.png",
 ]
-vegwear = [
-    "v1.png",
-    "v2.png",
-    "v2.png",
-    "v1.png",
+fruitwear = [
+    "f1.png",
+    "f2.png",
+    "f2.png",
+    "f1.png",
     "c1.png",
     "c2.png",
     "c1.png",
@@ -48,12 +48,12 @@ memory_refresh = visual.ImageStim(
     pos=[0, 0],
     interpolate=True,
 )
-P1 = ["m1.png", "v1.png", "c1.png"]
-P2 = ["w2.png", "v1.png", "c2.png"]
-P3 = ["w1.png", "v2.png", "c1.png"]
-P4 = ["m2.png", "v2.png", "c2.png"]
+P1 = ["m1.png", "f1.png", "c1.png"]
+P2 = ["w2.png", "f1.png", "c2.png"]
+P3 = ["w1.png", "f2.png", "c1.png"]
+P4 = ["m2.png", "f2.png", "c2.png"]
 AllP = [P1, P2, P3, P4]
-SampleStims = ["v1.png", "v2.png", "c1.png", "c2.png"]
+SampleStims = ["f1.png", "f2.png", "c1.png", "c2.png"]
 
 # הוראות
 kb = keyboard.Keyboard()
@@ -90,7 +90,7 @@ while restart == True:
         if "escape" in keys:
             win.close()
             core.quit()
-        WrongStims = ["v1.png", "v2.png", "c1.png", "c2.png"]
+        WrongStims = ["f1.png", "f2.png", "c1.png", "c2.png"]
         for j in AllP:
             if j[0] == humanLst[i]:
                 print(WrongStims)
@@ -101,7 +101,7 @@ while restart == True:
         rndsmple = [4, -4]
         rndlocation = np.random.choice(rndsmple, 2, replace=False)
         HumansSmpledStim = visual.ImageStim(win, image=humanLst[i], pos=[0, 5])
-        SmpledStim = visual.ImageStim(win, image=vegwear[i], pos=[rndlocation[0], 0])
+        SmpledStim = visual.ImageStim(win, image=fruitwear[i], pos=[rndlocation[0], 0])
         WrongStim = visual.ImageStim(
             win, image=random.choice(WrongStims), pos=[rndlocation[1], 0]
         )
@@ -150,8 +150,8 @@ while restart == True:
         counter.autoDraw = False
         humanData = humanLst[i]
         humanData = humanData.replace(".png", "")
-        vegwearData = vegwear[i]
-        vegwearData = vegwearData.replace(".png", "")
+        fruitwearData = fruitwear[i]
+        fruitwearData = fruitwearData.replace(".png", "")
         wrongStimData = WrongStim.image
         wrongStimData = wrongStimData.replace(".png", "")
         dataFile.write(
@@ -160,7 +160,7 @@ while restart == True:
                 trial,
                 count_true,
                 humanData,
-                vegwearData,
+                fruitwearData,
                 rndlocation[0],
                 wrongStimData,
                 rndlocation[1],
@@ -200,3 +200,4 @@ finish_training = visual.ImageStim(
 finish_training.draw()
 win.update()
 event.waitKeys(keyList=["space"])
+
