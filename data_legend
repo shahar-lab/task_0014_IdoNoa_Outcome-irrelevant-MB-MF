@@ -1,4 +1,4 @@
-This readme file described all variables that are saved in the project
+# This readme file described all variables that are saved in the project
 subject_num - in file name
 phase - training/experiment
 trial - trial number
