@@ -1,24 +1,32 @@
 # This readme file described all variables that are saved in the project
 subject_num - in file name
-phase - training/experiment
+*can we add a subject column inside the data frame?*
+phase - training/experiment *better use "block_type" which is more common*
+*you are missing a block cloumn here...*
 trial - trial number
 left_person - a number between 1 and 4 describing the person offered on the left side of the screen - referring to the numbers from "humansLst"
 left_person_objects - the objects offered by the left_person, fruit(1/2) and clothing (1/2) - according to the variable "model"
+*I think we should use two var left_person_fruit left_person_wear*
 right_person - a number between 1 and 4 describing the person offered on the right side of the screen 
 right_person_objects - the objects offered by the right_person, fruit(1/2) and clothing (1/2) - according to the variable "model"
+*same as above - two vars*
 keypress1 - the key used to select the person choice - could be "s" or "k" and is used to infer location
 rt1 - response time of person choice
 ch_person - the person number indicating the chosen person
-ch_objects - the objects offered by the chosen person 
+ch_objects - the objects offered by the chosen person
+*two vars I think would be better* 
 unch_person - the person number indicating the unchosen person
 unch_objects - the objects offered by the unchosen person
-exp_value_fruit - the expected value to win the chosen fruit
-reward_fruit - the reward outcome for the fruit
-exp_value_wear - the expected value to win the chosen clothing
+exp_value_fruit - the expected value for the selected fruit
+reward_fruit - fruit montery outcome
+exp_value_wear - the expected value to selected cloth
 reward_wear - the reward outcome for the clothing
+*I think we should also have wear_location and fruit_location*
 keypress2 - the key used to select the second choice (could be either fruit or wear, depending which was presented first)
 rt2 - response time to make the second choice
+*if its not to hard - can we also have a product2 and product3 column?*
 keypress3 - the key used to select the third choice (could be either fruit or wear, depending which was presented first)
 rt3 - response time to make the third choice
 fruit_wear_first - an indicator of which object outcome was presented first
 iti - inter-trial-interval
+* I would also add fruit1_exp_value, fruit2_expvalue, wear1_expvalue, wear2_expvalue - these can really help sometimes...*
