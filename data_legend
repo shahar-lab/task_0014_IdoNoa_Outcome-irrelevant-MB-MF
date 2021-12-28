@@ -1,24 +1,30 @@
 # This readme file described all variables that are saved in the project
-subject_num - in file name
-phase - training/experiment
+subject_num - in file name *why not in the file as a column?*
+phase - training/experiment *use "block_type" which is more common*
 trial - trial number
 left_person - a number between 1 and 4 describing the person offered on the left side of the screen - referring to the numbers from "humansLst"
 left_person_objects - the objects offered by the left_person, fruit(1/2) and clothing (1/2) - according to the variable "model"
+*why not two vars left_person_fruit left_person_cloth?*
 right_person - a number between 1 and 4 describing the person offered on the right side of the screen 
 right_person_objects - the objects offered by the right_person, fruit(1/2) and clothing (1/2) - according to the variable "model"
+*same as above*
 keypress1 - the key used to select the person choice - could be "s" or "k" and is used to infer location
+*I think keypress_person and then rt_person is better to be consistent with ch_person*
 rt1 - response time of person choice
 ch_person - the person number indicating the chosen person
 ch_objects - the objects offered by the chosen person 
+* as above - I would go with two seperate vars*
 unch_person - the person number indicating the unchosen person
 unch_objects - the objects offered by the unchosen person
-exp_value_fruit - the expected value to win the chosen fruit
-reward_fruit - the reward outcome for the fruit
-exp_value_wear - the expected value to win the chosen clothing
-reward_wear - the reward outcome for the clothing
-keypress2 - the key used to select the second choice (could be either fruit or wear, depending which was presented first)
-rt2 - response time to make the second choice
-keypress3 - the key used to select the third choice (could be either fruit or wear, depending which was presented first)
+*same as above*
+exp_value_fruit - reward expected value for the fruit 
+reward_fruit - fruit montery outcome (0/1 for unrewarded vs. rewarded)
+exp_value_wear - reward expected value for the chosen clothing
+reward_wear - cloth montery outcome (0/1 for unrewarded vs. rewarded)
+*I think it would be good if you can add location_fruit and location_wear*
+keypress2 - the key/location used to uncover the second product (could be either fruit or wear, depending which was presented first)
+rt2 - response time to uncover the second product
+keypress3 - the key/location used to select the third product (could be either fruit or wear, depending which was presented first)
 rt3 - response time to make the third choice
 fruit_wear_first - an indicator of which object outcome was presented first
 iti - inter-trial-interval
