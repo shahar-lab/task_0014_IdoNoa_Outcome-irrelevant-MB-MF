@@ -1,5 +1,0 @@
-subject,trial, step, Presented Person, Smpled-Stim, SmpledStim-Location, FalseStim, FalseStim-Location, Pressed Key, Reaction Time
-999,1,1,w2,f1,-4,f2,4,None,8000
-999,2,1,m1,c1,4,c2,-4,['s'],639
-999,3,1,m2,c2,-4,c1,4,['s'],436
-999,3,2,w2,c2,4,f2,-4,['s'],373
