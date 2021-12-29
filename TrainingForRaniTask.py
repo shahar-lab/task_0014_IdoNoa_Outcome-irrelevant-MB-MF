@@ -8,13 +8,14 @@ import numpy as np
 # create a text file to save data
 monitor_size = monitors.Monitor("testMonitor").getSizePix()
 expInfo = {"subject": "999"}
+subject_num = int(expInfo["subject"])
 dlg = gui.DlgFromDict(expInfo, title="Two-armed bandit task")
 fileName = "training_for_ranitask_" + expInfo["subject"] + "_" + data.getDateStr()
 dataFile = open(
     fileName + ".csv", "w"
 )  # a simple text file with 'comma-separated-values'
 dataFile.write(
-    "trial, step, Presented Person, Smpled-Stim, SmpledStim-Location, FalseStim, FalseStim-Location, Pressed Key, Reaction Time\n"
+    "subject,trial, step, Presented Person, Smpled-Stim, SmpledStim-Location, FalseStim, FalseStim-Location, Pressed Key, Reaction Time\n"
 )
 win = visual.Window(
     monitor="testMonitor", units="deg", screen=0, color=(255, 255, 255), fullscr=True
@@ -155,8 +156,9 @@ while restart == True:
         wrongStimData = WrongStim.image
         wrongStimData = wrongStimData.replace(".png", "")
         dataFile.write(
-            "%i,%i,%s,%s,%i,%s,%i,%s,%i\n"
+            "%i,%i,%i,%s,%s,%i,%s,%i,%s,%i\n"
             % (
+                subject_num,
                 trial,
                 count_true,
                 humanData,
