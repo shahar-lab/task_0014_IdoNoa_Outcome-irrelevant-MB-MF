@@ -8,9 +8,9 @@ import numpy as np
 # create a text file to save data
 monitor_size = monitors.Monitor("testMonitor").getSizePix()
 expInfo = {"subject": "999"}
-subject_num = int(expInfo["subject"])
 dlg = gui.DlgFromDict(expInfo, title="Two-armed bandit task")
 fileName = "training_for_ranitask_" + expInfo["subject"] + "_" + data.getDateStr()
+subject_num = int(expInfo["subject"])
 dataFile = open(
     fileName + ".csv", "w"
 )  # a simple text file with 'comma-separated-values'

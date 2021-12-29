@@ -5,9 +5,9 @@ import numpy as np
 
 # create a text file to save data
 expInfo = {"subject": "999"}
-subject_num = int(expInfo["subject"])
 dlg = gui.DlgFromDict(expInfo, title="Two-armed bandit task")
 fileName = "ranitask" + expInfo["subject"] + "_" + data.getDateStr()
+subject_num = int(expInfo["subject"])
 monitor_size = monitors.Monitor("testMonitor").getSizePix()
 dataFile = open(
     fileName + ".csv", "w"
@@ -98,9 +98,10 @@ def mytrials(
     kb = keyboard.Keyboard()
     kb.start()
     trials_in_block = 50
-    for t in range(1, Ntrls + 1):
-        block = np.floor(t / trials_in_block) + 1
-        if t % trials_in_block == 0:
+    block = 0
+    for t in range(Ntrls):
+        if t % trials_in_block == 0 & t != Ntrls - 1 & t != 0:
+            block += 1  # update block number
             game_pause.draw()
             win.update()
             event.waitKeys(keyList=["space"])
@@ -175,8 +176,8 @@ def mytrials(
                 % (
                     subject_num,  # f
                     phase,  # s
-                    block,  # f
-                    t - 50 * (block - 1),  # f
+                    block + 1,  # f
+                    t - trials_in_block * (block) + 1,  # f
                     sampled_stim[0] + 1,  # f left_person
                     model[sampled_stim[0]],  # s left_person_objects
                     np.nan,  # f
@@ -227,8 +228,8 @@ def mytrials(
                 % (
                     subject_num,  # f
                     phase,  # s
-                    block,  # f
-                    t - 50 * (block - 1),  # f
+                    block + 1,  # f
+                    t - trials_in_block * (block) + 1,  # f
                     sampled_stim[0] + 1,  # f left_person
                     model[sampled_stim[0]],  # s left_person_objects
                     np.nan,  # f
@@ -271,8 +272,8 @@ def mytrials(
                 % (
                     subject_num,  # f
                     phase,  # s
-                    block,  # f
-                    t - 50 * (block - 1),  # f
+                    block + 1,  # f
+                    t - trials_in_block * (block) + 1,  # f
                     sampled_stim[0] + 1,  # f left_person
                     model[sampled_stim[0]],  # s left_person_objects
                     np.nan,  # f
@@ -303,7 +304,12 @@ def mytrials(
             )
             continue
         trialStims = (FruitStim.image + WearStim.image).replace(".png", "")
-        ProbsFruit = [r1[t], r2[t], r2[t], r1[t]]  # organized across
+        ProbsFruit = [
+            r1[t],
+            r2[t],
+            r2[t],
+            r1[t],
+        ]  # t starts from 1, and the python file from 0.
         ProbsWear = [r3[t], r4[t], r3[t], r4[t]]
         print(trialStims)
         # print(ProbsFruit[selected_person])
@@ -374,8 +380,8 @@ def mytrials(
                 % (
                     subject_num,  # f
                     phase,  # s
-                    block,  # f
-                    t - 50 * (block - 1),  # f
+                    block + 1,  # f
+                    t - trials_in_block * (block) + 1,  # f
                     sampled_stim[0] + 1,  # f left_person
                     model[sampled_stim[0]],  # s left_person_objects
                     ProbsFruit[sampled_stim[0]],  # f
@@ -419,8 +425,8 @@ def mytrials(
                 % (
                     subject_num,  # f
                     phase,  # s
-                    block,  # f
-                    t - 50 * (block - 1),  # f
+                    block + 1,  # f
+                    t - trials_in_block * (block) + 1,  # f
                     sampled_stim[0] + 1,  # f left_person
                     model[sampled_stim[0]],  # s left_person_objects
                     ProbsFruit[sampled_stim[0]],  # f
@@ -487,8 +493,8 @@ def mytrials(
                 % (
                     subject_num,
                     phase,  # s
-                    block,
-                    t - 50 * (block - 1),  # f
+                    block + 1,  # f
+                    t - trials_in_block * (block) + 1,  # f
                     sampled_stim[0] + 1,  # f left_person
                     model[sampled_stim[0]],  # s left_person_objects
                     ProbsFruit[sampled_stim[0]],  # f
@@ -538,8 +544,8 @@ def mytrials(
                     % (
                         subject_num,
                         phase,  # s
-                        block,
-                        t - 50 * (block - 1),  # f
+                        block + 1,  # f
+                        t - trials_in_block * (block) + 1,  # f
                         sampled_stim[0] + 1,  # f left_person
                         model[sampled_stim[0]],  # s left_person_objects
                         ProbsFruit[sampled_stim[0]],  # f
@@ -591,8 +597,8 @@ def mytrials(
             % (
                 subject_num,
                 phase,  # s
-                block,
-                t - 50 * (block - 1),  # f
+                block + 1,  # f
+                t - trials_in_block * (block) + 1,  # f
                 sampled_stim[0] + 1,  # f left_person
                 model[sampled_stim[0]],  # s left_person_objects
                 ProbsFruit[sampled_stim[0]],  # f
@@ -702,3 +708,12 @@ start_test.draw()
 win.update()
 event.waitKeys(keyList=["space"])
 mytrials(subject_num, "test", 250, 1, 6, 0.5, 0.5, 0.5, 1, 1)
+finish_test = visual.ImageStim(
+    win,
+    image="instructions/instructions_test/finish_test.png",
+    pos=[0, 0],
+    interpolate=True,
+)
+finish_test.draw()
+win.update()
+event.waitKeys(keyList=["space"])
