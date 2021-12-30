@@ -13,7 +13,7 @@ dataFile = open(
     fileName + ".csv", "w"
 )  # a simple text file with 'comma-separated-values'
 dataFile.write(
-    "subject,phase,block,trial, left_person,left_person_objects,left_person_exp_value_fruit,left_person_exp_value_wear, right_person,right_person_objects,right_person_exp_value_fruit,right_person_exp_value_wear, keypress1, rt1, ch_person,ch_objects,unch_person,unch_objects, exp_value_ch_fruit, reward_fruit, exp_value_ch_wear, reward_wear, keypress2, rt2, keypress3, rt3, fruit_wear_first,fruit_location,wear_location,iti\n"
+    "subject,block_type,block,trial, left_person,left_person_fruit,left_person_wear, right_person,right_person_fruit,right_person_wear, ch_person,ch_fruit,ch_wear,keypress1, rt1, exp_value_ch_fruit, reward_fruit, exp_value_ch_wear, reward_wear, keypress2, rt2, keypress3, rt3,first_product,second_product, fruit_location,exp_value_fruit1,exp_value_fruit2,wear_location,exp_value_wear1,exp_value_wear2,iti\n"
 )
 win = visual.Window(
     monitor="testMonitor",
@@ -34,7 +34,7 @@ model = np.array(
     [[fruit[0], wear[0]], [fruit[1], wear[1]], [fruit[2], wear[2]], [fruit[3], wear[3]]]
 )
 # only pairs who share an object are valid
-valid_pairs = np.array([[0, 2], [0, 3], [1, 2], [1, 3]])
+valid_pairs = np.array([[0, 2], [2, 0], [0, 3], [3, 0], [1, 2], [2, 1], [1, 3], [3, 1]])
 cond = [3, 6]
 rndsmple = [3, -3]
 selected_person = None
@@ -83,7 +83,7 @@ def draws(one, two):
 # defining a single trial
 def mytrials(
     subject_num,
-    phase,
+    block_type,
     Ntrls,
     iti,
     ch_deadline,
@@ -97,7 +97,7 @@ def mytrials(
     # check keyboard presses
     kb = keyboard.Keyboard()
     kb.start()
-    trials_in_block = 50
+    trials_in_block = 5
     block = 0
     for t in range(Ntrls):
         if t % trials_in_block == 0 & t != Ntrls - 1 & t != 0:
@@ -109,7 +109,7 @@ def mytrials(
         if "escape" in keys:
             win.close()
             core.quit()
-        sampled_stim_idx = np.random.choice(4, 1)  # get a pair index
+        sampled_stim_idx = np.random.choice(8, 1)  # get a pair index
         sampled_stim = valid_pairs[sampled_stim_idx[0]]  # get the pair values
         rndlocation = np.random.choice(rndsmple, 2)
         if rndlocation[0] == -3:  # this is the location on screen
@@ -172,38 +172,43 @@ def mytrials(
             win.update()
             core.wait(1)
             dataFile.write(
-                "%f,%s,%f,%f,%f,%s,%f,%f,%f,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n"
+                "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f ,%f,%f,%f,%f ,%f,%f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f,%f\n"
                 % (
+                    # general
                     subject_num,  # f
-                    phase,  # s
-                    block + 1,  # f
-                    t - trials_in_block * (block) + 1,  # f
+                    block_type,  # s
+                    block + 1,  # f +1 - changes from 0 to 1
+                    t - trials_in_block * (block) + 1,  # f +1 - changes from 0 to 1
+                    # choice
                     sampled_stim[0] + 1,  # f left_person
-                    model[sampled_stim[0]],  # s left_person_objects
-                    np.nan,  # f
-                    np.nan,  # f
+                    int(fruit[sampled_stim[0]][1]),  # f left_person_fruit
+                    int(wear[sampled_stim[0]][1]),  # f left_person_wear
                     sampled_stim[1] + 1,  # f right_person
-                    model[sampled_stim[1]],  # s right_person_objects
-                    np.nan,  # f
-                    np.nan,  # f
+                    int(fruit[sampled_stim[1]][1]),  # f right_person_fruit
+                    int(wear[sampled_stim[1]][1]),  # f right_person_wear
+                    np.nan,  # f ch_person
+                    np.nan,  # f ch_person_fruit
+                    np.nan,  # f ch_person_wear
                     np.nan,  # s key1
                     np.nan,  # f rt1
-                    np.nan,  # f chosen_person
-                    np.nan,  # s ch_person_objects
-                    np.nan,  # f unch_person
-                    np.nan,  # s unch_person_objects
-                    np.nan,  # f exp_value_ch_fruit
+                    # outcomes
+                    np.nan,  # f  exp_value_ch_fruit
                     np.nan,  # f reward_fruit
-                    np.nan,  # f exp_value ch_wear
+                    np.nan,  # f exp_value_ch_wear
                     np.nan,  # f reward_ch_wear
                     np.nan,  # s key2
                     np.nan,  # f rt2
-                    np.nan,  # s key3
+                    np.nan,  # f key3
                     np.nan,  # f rt3
-                    np.nan,  # s fruit_wear_first
+                    np.nan,  # s first_product (fruit/wear)
+                    np.nan,  # s second_product (fruit/wear)
                     np.nan,  # s fruit_loc
+                    r1[t],  # f exp_value_fruit1
+                    r2[t],  # f exp_value_fruit2
                     np.nan,  # s wear_loc
-                    np.nan,  # f iti
+                    r3[t],  # f exp_value_wear1
+                    r4[t],  # f exp_value_wear2
+                    iti,  # f iti
                 )
             )
             continue
@@ -224,38 +229,43 @@ def mytrials(
             PresentedStim = RStim
         elif keys == "space":
             dataFile.write(
-                "%f,%s,%f,%f,%f,%s,%f,%f,%f,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n"
+                "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f ,%f,%f,%f,%f ,%f,%f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f,%f\n"
                 % (
+                    # general
                     subject_num,  # f
-                    phase,  # s
-                    block + 1,  # f
-                    t - trials_in_block * (block) + 1,  # f
+                    block_type,  # s
+                    block + 1,  # f +1 - changes from 0 to 1
+                    t - trials_in_block * (block) + 1,  # f +1 - changes from 0 to 1
+                    # choice
                     sampled_stim[0] + 1,  # f left_person
-                    model[sampled_stim[0]],  # s left_person_objects
-                    np.nan,  # f
-                    np.nan,  # f
+                    int(fruit[sampled_stim[0]][1]),  # f left_person_fruit
+                    int(wear[sampled_stim[0]][1]),  # f left_person_wear
                     sampled_stim[1] + 1,  # f right_person
-                    model[sampled_stim[1]],  # s right_person_objects
-                    np.nan,  # f
-                    np.nan,  # f
+                    int(fruit[sampled_stim[1]][1]),  # f right_person_fruit
+                    int(wear[sampled_stim[1]][1]),  # f right_person_wear
+                    np.nan,  # f ch_person
+                    np.nan,  # f ch_person_fruit
+                    np.nan,  # f ch_person_wear
                     np.nan,  # s key1
                     np.nan,  # f rt1
-                    np.nan,  # f chosen_person
-                    np.nan,  # s ch_person_objects
-                    np.nan,  # f unch_person
-                    np.nan,  # s unch_person_objects
-                    np.nan,  # f exp_value_ch_fruit
+                    # outcomes
+                    np.nan,  # f  exp_value_ch_fruit
                     np.nan,  # f reward_fruit
-                    np.nan,  # f exp_value ch_wear
+                    np.nan,  # f exp_value_ch_wear
                     np.nan,  # f reward_ch_wear
                     np.nan,  # s key2
                     np.nan,  # f rt2
-                    np.nan,  # s key3
+                    np.nan,  # f key3
                     np.nan,  # f rt3
-                    np.nan,  # s fruit_wear_first
+                    np.nan,  # s first_product (fruit/wear)
+                    np.nan,  # s second_product (fruit/wear)
                     np.nan,  # s fruit_loc
+                    r1[t],  # f exp_value_fruit1
+                    r2[t],  # f exp_value_fruit2
                     np.nan,  # s wear_loc
-                    np.nan,  # f iti
+                    r3[t],  # f exp_value_wear1
+                    r4[t],  # f exp_value_wear2
+                    iti,  # f iti
                 )
             )
             call.draw()
@@ -268,38 +278,43 @@ def mytrials(
             win.update()
             core.wait(1)
             dataFile.write(
-                "%f,%s,%f,%f,%f,%s,%f,%f,%f,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n"
+                "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f ,%f,%f,%f,%f ,%f,%f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f,%f\n"
                 % (
+                    # general
                     subject_num,  # f
-                    phase,  # s
-                    block + 1,  # f
-                    t - trials_in_block * (block) + 1,  # f
+                    block_type,  # s
+                    block + 1,  # f +1 - changes from 0 to 1
+                    t - trials_in_block * (block) + 1,  # f +1 - changes from 0 to 1
+                    # choice
                     sampled_stim[0] + 1,  # f left_person
-                    model[sampled_stim[0]],  # s left_person_objects
-                    np.nan,  # f
-                    np.nan,  # f
+                    int(fruit[sampled_stim[0]][1]),  # f left_person_fruit
+                    int(wear[sampled_stim[0]][1]),  # f left_person_wear
                     sampled_stim[1] + 1,  # f right_person
-                    model[sampled_stim[1]],  # s right_person_objects
-                    np.nan,  # f
-                    np.nan,  # f
+                    int(fruit[sampled_stim[1]][1]),  # f right_person_fruit
+                    int(wear[sampled_stim[1]][1]),  # f right_person_wear
+                    np.nan,  # f ch_person
+                    np.nan,  # f ch_person_fruit
+                    np.nan,  # f ch_person_wear
                     np.nan,  # s key1
                     np.nan,  # f rt1
-                    np.nan,  # f chosen_person
-                    np.nan,  # s ch_person_objects
-                    np.nan,  # f unch_person
-                    np.nan,  # s unch_person_objects
-                    np.nan,  # f exp_value_ch_fruit
+                    # outcomes
+                    np.nan,  # f  exp_value_ch_fruit
                     np.nan,  # f reward_fruit
-                    np.nan,  # f exp_value ch_wear
+                    np.nan,  # f exp_value_ch_wear
                     np.nan,  # f reward_ch_wear
                     np.nan,  # s key2
                     np.nan,  # f rt2
-                    np.nan,  # s key3
+                    np.nan,  # f key3
                     np.nan,  # f rt3
-                    np.nan,  # s fruit_wear_first
+                    np.nan,  # s first_product (fruit/wear)
+                    np.nan,  # s second_product (fruit/wear)
                     np.nan,  # s fruit_loc
+                    r1[t],  # f exp_value_fruit1
+                    r2[t],  # f exp_value_fruit2
                     np.nan,  # s wear_loc
-                    np.nan,  # f iti
+                    r3[t],  # f exp_value_wear1
+                    r4[t],  # f exp_value_wear2
+                    iti,  # f iti
                 )
             )
             continue
@@ -312,8 +327,8 @@ def mytrials(
         ]  # t starts from 1, and the python file from 0.
         ProbsWear = [r3[t], r4[t], r3[t], r4[t]]
         print(trialStims)
-        # print(ProbsFruit[selected_person])
-        # print(ProbsWear[selected_person])
+        print(ProbsFruit[selected_person])
+        print(ProbsWear[selected_person])
         # check if won/lost by predetermined probablity of selected_person
         if np.random.random() < ProbsFruit[selected_person]:
             RewardFruit = won
@@ -342,6 +357,8 @@ def mytrials(
             Rpos2 = -5
             FrstLocation = FruitStim.pos[0]
             ScndLocation = WearStim.pos[0]
+            first_product = "fruit"
+            second_product = "wear"
 
         else:
             FirstRecDraw = (-0.7, 0.7, -0.78, -0.24)
@@ -355,6 +372,8 @@ def mytrials(
             Rpos2 = 0
             FrstLocation = WearStim.pos[0]
             ScndLocation = FruitStim.pos[0]
+            first_product = "wear"
+            second_product = "fruit"
 
         # the task itself, drawing the stimuli and the feedbacks
         PresentedStim.autoDraw = True
@@ -376,38 +395,43 @@ def mytrials(
             core.wait(1)
             # write the trial data and continue to next trial
             dataFile.write(
-                "%f,%s,%f,%f,%f,%s,%f,%f,%f,%s,%f,%f,%s,%f,%f,%s,%f,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n"
+                "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%s,%f ,%f,%f,%f,%f ,%f,%f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f,%f\n"
                 % (
+                    # general
                     subject_num,  # f
-                    phase,  # s
-                    block + 1,  # f
-                    t - trials_in_block * (block) + 1,  # f
+                    block_type,  # s
+                    block + 1,  # f +1 - changes from 0 to 1
+                    t - trials_in_block * (block) + 1,  # f +1 - changes from 0 to 1
+                    # choice
                     sampled_stim[0] + 1,  # f left_person
-                    model[sampled_stim[0]],  # s left_person_objects
-                    ProbsFruit[sampled_stim[0]],  # f
-                    ProbsWear[sampled_stim[0]],  # f
+                    int(fruit[sampled_stim[0]][1]),  # f left_person_fruit
+                    int(wear[sampled_stim[0]][1]),  # f left_person_wear
                     sampled_stim[1] + 1,  # f right_person
-                    model[sampled_stim[1]],  # s right_person_objects
-                    ProbsFruit[sampled_stim[1]],  # f
-                    ProbsWear[sampled_stim[1]],  # f
+                    int(fruit[sampled_stim[1]][1]),  # f right_person_fruit
+                    int(wear[sampled_stim[1]][1]),  # f right_person_wear
+                    selected_person + 1,  # f ch_person
+                    int(fruit[selected_person][1]),  # f ch_person_fruit
+                    int(wear[selected_person][1]),  # f ch_person_wear
                     keys,  # s key1
                     RT1 * 1000,  # f rt1
-                    selected_person + 1,  # f chosen_person
-                    model[selected_person],  # s ch_person_objects
-                    UnselectedPerson + 1,  # f unch_person
-                    model[UnselectedPerson],  # s unch_person_objects
-                    np.nan,  # f exp_value_ch_fruit
+                    # outcomes
+                    np.nan,  # f  exp_value_ch_fruit
                     np.nan,  # f reward_fruit
-                    np.nan,  # f exp_value ch_wear
+                    np.nan,  # f exp_value_ch_wear
                     np.nan,  # f reward_ch_wear
                     np.nan,  # s key2
                     np.nan,  # f rt2
-                    np.nan,  # s key3
+                    np.nan,  # f key3
                     np.nan,  # f rt3
-                    np.nan,  # s fruit_wear_first
+                    np.nan,  # s first_product (fruit/wear)
+                    np.nan,  # s second_product (fruit/wear)
                     np.nan,  # s fruit_loc
+                    r1[t],  # f exp_value_fruit1
+                    r2[t],  # f exp_value_fruit2
                     np.nan,  # s wear_loc
-                    np.nan,  # f iti
+                    r3[t],  # f exp_value_wear1
+                    r4[t],  # f exp_value_wear2
+                    iti,  # f iti
                 )
             )
             continue
@@ -421,38 +445,43 @@ def mytrials(
             win.update()
             core.wait(1)
             dataFile.write(
-                "%f,%s,%f,%f,%f,%s,%f,%f,%f,%s,%f,%f,%s,%f,%f,%s,%f,%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n"
+                "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%s,%f ,%f,%f,%f,%f ,%f,%f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f,%f\n"
                 % (
+                    # general
                     subject_num,  # f
-                    phase,  # s
-                    block + 1,  # f
-                    t - trials_in_block * (block) + 1,  # f
+                    block_type,  # s
+                    block + 1,  # f +1 - changes from 0 to 1
+                    t - trials_in_block * (block) + 1,  # f +1 - changes from 0 to 1
+                    # choice
                     sampled_stim[0] + 1,  # f left_person
-                    model[sampled_stim[0]],  # s left_person_objects
-                    ProbsFruit[sampled_stim[0]],  # f
-                    ProbsWear[sampled_stim[0]],  # f
+                    int(fruit[sampled_stim[0]][1]),  # f left_person_fruit
+                    int(wear[sampled_stim[0]][1]),  # f left_person_wear
                     sampled_stim[1] + 1,  # f right_person
-                    model[sampled_stim[1]],  # s right_person_objects
-                    ProbsFruit[sampled_stim[1]],  # f
-                    ProbsWear[sampled_stim[1]],  # f
+                    int(fruit[sampled_stim[1]][1]),  # f right_person_fruit
+                    int(wear[sampled_stim[1]][1]),  # f right_person_wear
+                    selected_person + 1,  # f ch_person
+                    int(fruit[selected_person][1]),  # f ch_person_fruit
+                    int(wear[selected_person][1]),  # f ch_person_wear
                     keys,  # s key1
                     RT1 * 1000,  # f rt1
-                    selected_person + 1,  # f chosen_person
-                    model[selected_person],  # s ch_person_objects
-                    UnselectedPerson + 1,  # f unch_person
-                    model[UnselectedPerson],  # s unch_person_objects
-                    np.nan,  # f exp_value_ch_fruit
+                    # outcomes
+                    np.nan,  # f  exp_value_ch_fruit
                     np.nan,  # f reward_fruit
-                    np.nan,  # f exp_value ch_wear
+                    np.nan,  # f exp_value_ch_wear
                     np.nan,  # f reward_ch_wear
                     np.nan,  # s key2
                     np.nan,  # f rt2
-                    np.nan,  # s key3
+                    np.nan,  # f key3
                     np.nan,  # f rt3
-                    np.nan,  # s fruit_wear_first
+                    np.nan,  # s first_product (fruit/wear)
+                    np.nan,  # s second_product (fruit/wear)
                     np.nan,  # s fruit_loc
+                    r1[t],  # f exp_value_fruit1
+                    r2[t],  # f exp_value_fruit2
                     np.nan,  # s wear_loc
-                    np.nan,  # f iti
+                    r3[t],  # f exp_value_wear1
+                    r4[t],  # f exp_value_wear2
+                    iti,  # f iti
                 )
             )
             continue
@@ -489,37 +518,42 @@ def mytrials(
             win.update()
             core.wait(1)
             dataFile.write(
-                "%f,%s,%f,%f,%f,%s,%f,%f,%f,%s,%f,%f,%s,%f,%f,%s,%f,%s,%f,%f,%f,%f,%s,%f,%f,%f,%s,%s,%s,%f\n"
+                "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%s,%f ,%f,%f,%f,%f ,%s,%f,%f,%f ,%s,%s,%s ,%f,%f,%s ,%f,%f,%f\n"
                 % (
-                    subject_num,
-                    phase,  # s
-                    block + 1,  # f
-                    t - trials_in_block * (block) + 1,  # f
+                    # general
+                    subject_num,  # f
+                    block_type,  # s
+                    block + 1,  # f +1 - changes from 0 to 1
+                    t - trials_in_block * (block) + 1,  # f +1 - changes from 0 to 1
+                    # choice
                     sampled_stim[0] + 1,  # f left_person
-                    model[sampled_stim[0]],  # s left_person_objects
-                    ProbsFruit[sampled_stim[0]],  # f
-                    ProbsWear[sampled_stim[0]],  # f
+                    int(fruit[sampled_stim[0]][1]),  # f left_person_fruit
+                    int(wear[sampled_stim[0]][1]),  # f left_person_wear
                     sampled_stim[1] + 1,  # f right_person
-                    model[sampled_stim[1]],  # s right_person_objects
-                    ProbsFruit[sampled_stim[1]],  # f
-                    ProbsWear[sampled_stim[1]],  # f
+                    int(fruit[sampled_stim[1]][1]),  # f right_person_fruit
+                    int(wear[sampled_stim[1]][1]),  # f right_person_wear
+                    selected_person + 1,  # f ch_person
+                    int(fruit[selected_person][1]),  # f ch_person_fruit
+                    int(wear[selected_person][1]),  # f ch_person_wear
                     keys,  # s key1
                     RT1 * 1000,  # f rt1
-                    selected_person + 1,  # f chosen_person
-                    model[selected_person],  # s ch_person_objects
-                    UnselectedPerson + 1,  # f unch_person
-                    model[UnselectedPerson],  # s unch_person_objects
-                    ProbsFruit[selected_person] * 100,  # f exp_value_ch_fruit
+                    # outcomes
+                    ProbsFruit[selected_person],  # f  exp_value_ch_fruit
                     ResultFruit,  # f reward_fruit
-                    ProbsWear[selected_person] * 100,  # f exp_value ch_wear
+                    ProbsWear[selected_person],  # f exp_value_ch_wear
                     ResultWear,  # f reward_ch_wear
                     key2,  # s key2
                     RT2 * 1000,  # f rt2
-                    np.nan,  # s key3
+                    np.nan,  # f key3
                     np.nan,  # f rt3
-                    topFirst,  # s fruit_wear_first
+                    first_product,  # s first_product (fruit/wear)
+                    second_product,  # s second_product (fruit/wear)
                     fruit_loc,  # s fruit_loc
+                    r1[t],  # f exp_value_fruit1
+                    r2[t],  # f exp_value_fruit2
                     wear_loc,  # s wear_loc
+                    r3[t],  # f exp_value_wear1
+                    r4[t],  # f exp_value_wear2
                     iti,  # f iti
                 )
             )
@@ -540,37 +574,42 @@ def mytrials(
                 ProbsFruit = [np.nan, np.nan, np.nan, np.nan]
                 ResultFruit = np.nan
                 dataFile.write(
-                    "%f,%s,%f,%f,%f,%s,%f,%f,%f,%s,%f,%f,%s,%f,%f,%s,%f,%s,%f,%f,%f,%f,%s,%f,%f,%f,%s,%s,%s,%f\n"
+                    "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%s,%f ,%f,%f,%f,%f ,%s,%f,%f,%f ,%s,%s,%s ,%f,%f,%s ,%f,%f,%f\n"
                     % (
-                        subject_num,
-                        phase,  # s
-                        block + 1,  # f
-                        t - trials_in_block * (block) + 1,  # f
+                        # general
+                        subject_num,  # f
+                        block_type,  # s
+                        block + 1,  # f +1 - changes from 0 to 1
+                        t - trials_in_block * (block) + 1,  # f +1 - changes from 0 to 1
+                        # choice
                         sampled_stim[0] + 1,  # f left_person
-                        model[sampled_stim[0]],  # s left_person_objects
-                        ProbsFruit[sampled_stim[0]],  # f
-                        ProbsWear[sampled_stim[0]],  # f
+                        int(fruit[sampled_stim[0]][1]),  # f left_person_fruit
+                        int(wear[sampled_stim[0]][1]),  # f left_person_wear
                         sampled_stim[1] + 1,  # f right_person
-                        model[sampled_stim[1]],  # s right_person_objects
-                        ProbsFruit[sampled_stim[1]],  # f
-                        ProbsWear[sampled_stim[1]],  # f
+                        int(fruit[sampled_stim[1]][1]),  # f right_person_fruit
+                        int(wear[sampled_stim[1]][1]),  # f right_person_wear
+                        selected_person + 1,  # f ch_person
+                        int(fruit[selected_person][1]),  # f ch_person_fruit
+                        int(wear[selected_person][1]),  # f ch_person_wear
                         keys,  # s key1
                         RT1 * 1000,  # f rt1
-                        selected_person + 1,  # f chosen_person
-                        model[selected_person],  # s ch_person_objects
-                        UnselectedPerson + 1,  # f unch_person
-                        model[UnselectedPerson],  # s unch_person_objects
-                        ProbsFruit[selected_person] * 100,  # f exp_value_ch_fruit
+                        # outcomes
+                        ProbsFruit[selected_person],  # f  exp_value_ch_fruit
                         ResultFruit,  # f reward_fruit
-                        ProbsWear[selected_person] * 100,  # f exp_value ch_wear
+                        ProbsWear[selected_person],  # f exp_value_ch_wear
                         ResultWear,  # f reward_ch_wear
                         key2,  # s key2
                         RT2 * 1000,  # f rt2
-                        np.nan,  # s key3
+                        np.nan,  # f key3
                         np.nan,  # f rt3
-                        topFirst,  # s fruit_wear_first
+                        first_product,  # s first_product (fruit/wear)
+                        second_product,  # s second_product (fruit/wear)
                         fruit_loc,  # s fruit_loc
+                        r1[t],  # f exp_value_fruit1
+                        r2[t],  # f exp_value_fruit2
                         wear_loc,  # s wear_loc
+                        r3[t],  # f exp_value_wear1
+                        r4[t],  # f exp_value_wear2
                         iti,  # f iti
                     )
                 )
@@ -593,37 +632,44 @@ def mytrials(
         PresentedStim.autoDraw = False
 
         dataFile.write(
-            "%f,%s,%f,%f,%f,%s,%f,%f,%f,%s,%f,%f,%s,%f,%f,%s,%f,%s,%f,%f,%f,%f,%s,%f,%s,%f,%s,%s,%s,%f\n"
+            "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%s,%f ,%f,%f,%f,%f ,%s,%f,%s,%f ,%s,%s,%s ,%f,%f,%s ,%f,%f,%f\n"
             % (
-                subject_num,
-                phase,  # s
-                block + 1,  # f
-                t - trials_in_block * (block) + 1,  # f
+                # general
+                subject_num,  # f subject
+                block_type,  # s block_type
+                block + 1,  # f block_num : +1 - changes from 0 to 1
+                t
+                - trials_in_block * (block)
+                + 1,  # trial_num f +1 - changes from 0 to 1
+                # choice
                 sampled_stim[0] + 1,  # f left_person
-                model[sampled_stim[0]],  # s left_person_objects
-                ProbsFruit[sampled_stim[0]],  # f
-                ProbsWear[sampled_stim[0]],  # f
+                int(fruit[sampled_stim[0]][1]),  # f left_person_fruit
+                int(wear[sampled_stim[0]][1]),  # f left_person_wear
                 sampled_stim[1] + 1,  # f right_person
-                model[sampled_stim[1]],  # s right_person_objects
-                ProbsFruit[sampled_stim[1]],  # f
-                ProbsWear[sampled_stim[1]],  # f
+                int(fruit[sampled_stim[1]][1]),  # f right_person_fruit
+                int(wear[sampled_stim[1]][1]),  # f right_person_wear
+                selected_person + 1,  # f ch_person
+                int(fruit[selected_person][1]),  # f ch_person_fruit
+                int(wear[selected_person][1]),  # f ch_person_wear
                 keys,  # s key1
                 RT1 * 1000,  # f rt1
-                selected_person + 1,  # f chosen_person
-                model[selected_person],  # s ch_person_objects
-                UnselectedPerson + 1,  # f unch_person
-                model[UnselectedPerson],  # s unch_person_objects
-                ProbsFruit[selected_person] * 100,  # f exp_value_ch_fruit
+                # outcomes
+                ProbsFruit[selected_person],  # f  exp_value_ch_fruit
                 ResultFruit,  # f reward_fruit
-                ProbsWear[selected_person] * 100,  # f exp_value ch_wear
+                ProbsWear[selected_person],  # f exp_value_ch_wear
                 ResultWear,  # f reward_ch_wear
                 key2,  # s key2
                 RT2 * 1000,  # f rt2
                 key3,  # s key3
                 RT3 * 1000,  # f rt3
-                topFirst,  # s fruit_wear_first
+                first_product,  # s first_product (fruit/wear)
+                second_product,  # s second_product (fruit/wear)
                 fruit_loc,  # s fruit_loc
+                r1[t],  # f exp_value_fruit1
+                r2[t],  # f exp_value_fruit2
                 wear_loc,  # s wear_loc
+                r3[t],  # f exp_value_wear1
+                r4[t],  # f exp_value_wear2
                 iti,  # f iti
             )
         )
@@ -697,7 +743,7 @@ start_training.draw()
 win.update()
 event.waitKeys(keyList=["space"])
 
-mytrials(subject_num, "train", 10, 1, 6, 0.5, 0.5, 0.5, 1, 1)
+mytrials(subject_num, "train", 2, 1, 6, 0.5, 0.5, 0.5, 1, 1)
 start_test = visual.ImageStim(
     win,
     image="instructions/instructions_test/start_test.png",
@@ -707,7 +753,7 @@ start_test = visual.ImageStim(
 start_test.draw()
 win.update()
 event.waitKeys(keyList=["space"])
-mytrials(subject_num, "test", 250, 1, 6, 0.5, 0.5, 0.5, 1, 1)
+mytrials(subject_num, "test", 25, 1, 6, 0.5, 0.5, 0.5, 1, 1)
 finish_test = visual.ImageStim(
     win,
     image="instructions/instructions_test/finish_test.png",
