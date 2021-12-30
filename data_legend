@@ -2,6 +2,7 @@
 ##general
 subject 
 block_type (training/test) - whether its a train or test block
+block (1 to 5) - block number
 trial (1 to 50) - trial number
 
 ##choice
