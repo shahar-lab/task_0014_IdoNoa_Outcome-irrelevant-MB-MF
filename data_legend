@@ -1,6 +1,5 @@
-# This readme file described all variables that are saved in the project
+# This readme file described all variables that are saved in the csv
 ##general
-subject_num - in file name
 subject 
 block_type (training/test) - whether its a train or test block
 trial (1 to 50) - trial number
