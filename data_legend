@@ -19,9 +19,9 @@ keypress1 - the key used to select the person choice - could be "s" or "k" and i
 rt1 - response time of person choice
 
 ##outcomes
-exp_value_fruit - the expected value to win the chosen fruit
+exp_value_ch_fruit - the expected value to win the chosen fruit
 reward_fruit - the reward outcome for the fruit
-exp_value_wear - the expected value to win the chosen clothing
+exp_value_ch_wear - the expected value to win the chosen clothing
 reward_wear - the reward outcome for the clothing
 keypress2 - the key used to select the second choice (could be either fruit or wear, depending which was presented first)
 rt2 - response time to make the second choice
@@ -32,7 +32,9 @@ second_product (fruit / wear)
 
 ##misc
 iti - inter-trial-interval
+fruit_location
 exp_value_fruit1
 exp_value_fruit2
+wear_location
 exp_value_wear1
 exp_value_wear2
