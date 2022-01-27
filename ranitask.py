@@ -30,17 +30,22 @@ win.mouseVisible = False
 
 # declaration of persons' and objects' pictures
 person_list = [
-    "m1.png",
-    "m2.png",
-    "w1.png",
-    "w2.png",
+    "images/m1.png",
+    "images/m2.png",
+    "images/w1.png",
+    "images/w2.png",
 ]  # those arrays are organized according to the model. m1 has f1 and c1, w2 has f1 and c2...
-fruit = ["f1.png", "f2.png", "f2.png", "f1.png"]  # f1 is bannana, f2 is orange
+fruit = [
+    "images/f1.png",
+    "images/f2.png",
+    "images/f2.png",
+    "images/f1.png",
+]  # f1 is bannana, f2 is orange
 wear = [
-    "c1.png",
-    "c2.png",
-    "c1.png",
-    "c2.png",
+    "images/c1.png",
+    "images/c2.png",
+    "images/c1.png",
+    "images/c2.png",
 ]  # c refers to clothing, c1 is hat, c2 is shirt.
 
 # associating each person with its fruit and wear
@@ -161,28 +166,28 @@ def mytrials(
                 win, image=fruit[0], pos=[fruit_loc_pxl, 0], size=2
             )
             fruit_cover = visual.ImageStim(
-                win, image="fruit_cvr.png", pos=[fruit_loc_pxl, 0]
+                win, image="images/fruit_cvr.png", pos=[fruit_loc_pxl, 0]
             )
             wear_stimulus = visual.ImageStim(
                 win, image=wear[0], pos=[wear_loc_pxl, -5], size=2
             )
             wear_cover = visual.ImageStim(
-                win, image="wear_cvr.png", pos=[wear_loc_pxl, -5]
+                win, image="images/wear_cvr.png", pos=[wear_loc_pxl, -5]
             )
 
             fruit_green_base = visual.ImageStim(
-                win, image="greenbase.png", pos=[-fruit_loc_pxl, -0.5]
+                win, image="images/greenbase.png", pos=[-fruit_loc_pxl, -0.5]
             )
             wear_green_base = visual.ImageStim(
-                win, image="greenbase.png", pos=[-wear_loc_pxl, -6]
+                win, image="images/greenbase.png", pos=[-wear_loc_pxl, -6]
             )
 
             # define won/lost feedback, some stimuli
             won = visual.ImageStim(
-                win, image="rw.jpg", pos=[0, 0], size=2, interpolate=True
+                win, image="images/rw.jpg", pos=[0, 0], size=2, interpolate=True
             )
             lost = visual.ImageStim(
-                win, image="ur.jpg", pos=[0, 0], size=2, interpolate=True
+                win, image="images/ur.jpg", pos=[0, 0], size=2, interpolate=True
             )
 
             # draw the stimuli and update the window
@@ -218,11 +223,11 @@ def mytrials(
                         t + 1,  # f
                         # choice
                         person_pair[0] + 1,  # f left_person
-                        int(fruit[person_pair[0]][1]),  # f left_person_fruit
-                        int(wear[person_pair[0]][1]),  # f left_person_wear
+                        int(fruit[person_pair[0]][8]),  # f left_person_fruit
+                        int(wear[person_pair[0]][8]),  # f left_person_wear
                         person_pair[1] + 1,  # f right_person
-                        int(fruit[person_pair[1]][1]),  # f right_person_fruit
-                        int(wear[person_pair[1]][1]),  # f right_person_wear
+                        int(fruit[person_pair[1]][8]),  # f right_person_fruit
+                        int(wear[person_pair[1]][8]),  # f right_person_wear
                         np.nan,  # f ch_person
                         np.nan,  # f ch_person_fruit
                         np.nan,  # f ch_person_wear
@@ -278,11 +283,11 @@ def mytrials(
                         t + 1,  # f +1 changes from 0 to 1
                         # choice
                         person_pair[0] + 1,  # f left_person
-                        int(fruit[person_pair[0]][1]),  # f left_person_fruit
-                        int(wear[person_pair[0]][1]),  # f left_person_wear
+                        int(fruit[person_pair[0]][8]),  # f left_person_fruit
+                        int(wear[person_pair[0]][8]),  # f left_person_wear
                         person_pair[1] + 1,  # f right_person
-                        int(fruit[person_pair[1]][1]),  # f right_person_fruit
-                        int(wear[person_pair[1]][1]),  # f right_person_wear
+                        int(fruit[person_pair[1]][8]),  # f right_person_fruit
+                        int(wear[person_pair[1]][8]),  # f right_person_wear
                         np.nan,  # f ch_person
                         np.nan,  # f ch_person_fruit
                         np.nan,  # f ch_person_wear
@@ -329,11 +334,11 @@ def mytrials(
                         t + 1,  # f +1 - changes from 0 to 1
                         # choice
                         person_pair[0] + 1,  # f left_person
-                        int(fruit[person_pair[0]][1]),  # f left_person_fruit
-                        int(wear[person_pair[0]][1]),  # f left_person_wear
+                        int(fruit[person_pair[0]][8]),  # f left_person_fruit
+                        int(wear[person_pair[0]][8]),  # f left_person_wear
                         person_pair[1] + 1,  # f right_person
-                        int(fruit[person_pair[1]][1]),  # f right_person_fruit
-                        int(wear[person_pair[1]][1]),  # f right_person_wear
+                        int(fruit[person_pair[1]][8]),  # f right_person_fruit
+                        int(wear[person_pair[1]][8]),  # f right_person_wear
                         np.nan,  # f ch_person
                         np.nan,  # f ch_person_fruit
                         np.nan,  # f ch_person_wear
@@ -453,14 +458,14 @@ def mytrials(
                         t + 1,  # f +1 - changes from 0 to 1
                         # choice
                         person_pair[0] + 1,  # f left_person
-                        int(fruit[person_pair[0]][1]),  # f left_person_fruit
-                        int(wear[person_pair[0]][1]),  # f left_person_wear
+                        int(fruit[person_pair[0]][8]),  # f left_person_fruit
+                        int(wear[person_pair[0]][8]),  # f left_person_wear
                         person_pair[1] + 1,  # f right_person
-                        int(fruit[person_pair[1]][1]),  # f right_person_fruit
-                        int(wear[person_pair[1]][1]),  # f right_person_wear
+                        int(fruit[person_pair[1]][8]),  # f right_person_fruit
+                        int(wear[person_pair[1]][8]),  # f right_person_wear
                         selected_person + 1,  # f ch_person
-                        int(fruit[selected_person][1]),  # f ch_person_fruit
-                        int(wear[selected_person][1]),  # f ch_person_wear
+                        int(fruit[selected_person][8]),  # f ch_person_fruit
+                        int(wear[selected_person][8]),  # f ch_person_wear
                         key1,  # s key1
                         RT1 * 1000,  # f rt1
                         # outcomes
@@ -504,14 +509,14 @@ def mytrials(
                         t + 1,  # f +1 - changes from 0 to 1
                         # choice
                         person_pair[0] + 1,  # f left_person
-                        int(fruit[person_pair[0]][1]),  # f left_person_fruit
-                        int(wear[person_pair[0]][1]),  # f left_person_wear
+                        int(fruit[person_pair[0]][8]),  # f left_person_fruit
+                        int(wear[person_pair[0]][8]),  # f left_person_wear
                         person_pair[1] + 1,  # f right_person
-                        int(fruit[person_pair[1]][1]),  # f right_person_fruit
-                        int(wear[person_pair[1]][1]),  # f right_person_wear
+                        int(fruit[person_pair[1]][8]),  # f right_person_fruit
+                        int(wear[person_pair[1]][8]),  # f right_person_wear
                         selected_person + 1,  # f ch_person
-                        int(fruit[selected_person][1]),  # f ch_person_fruit
-                        int(wear[selected_person][1]),  # f ch_person_wear
+                        int(fruit[selected_person][8]),  # f ch_person_fruit
+                        int(wear[selected_person][8]),  # f ch_person_wear
                         key1,  # s key1
                         RT1 * 1000,  # f rt1
                         # outcomes
@@ -582,14 +587,14 @@ def mytrials(
                         t + 1,  # f +1 - changes from 0 to 1
                         # choice
                         person_pair[0] + 1,  # f left_person
-                        int(fruit[person_pair[0]][1]),  # f left_person_fruit
-                        int(wear[person_pair[0]][1]),  # f left_person_wear
+                        int(fruit[person_pair[0]][8]),  # f left_person_fruit
+                        int(wear[person_pair[0]][8]),  # f left_person_wear
                         person_pair[1] + 1,  # f right_person
-                        int(fruit[person_pair[1]][1]),  # f right_person_fruit
-                        int(wear[person_pair[1]][1]),  # f right_person_wear
+                        int(fruit[person_pair[1]][8]),  # f right_person_fruit
+                        int(wear[person_pair[1]][8]),  # f right_person_wear
                         selected_person + 1,  # f ch_person
-                        int(fruit[selected_person][1]),  # f ch_person_fruit
-                        int(wear[selected_person][1]),  # f ch_person_wear
+                        int(fruit[selected_person][8]),  # f ch_person_fruit
+                        int(wear[selected_person][8]),  # f ch_person_wear
                         key1,  # s key1
                         RT1 * 1000,  # f rt1
                         # outcomes
@@ -639,14 +644,14 @@ def mytrials(
                             t + 1,  # f +1 - changes from 0 to 1
                             # choice
                             person_pair[0] + 1,  # f left_person
-                            int(fruit[person_pair[0]][1]),  # f left_person_fruit
-                            int(wear[person_pair[0]][1]),  # f left_person_wear
+                            int(fruit[person_pair[0]][8]),  # f left_person_fruit
+                            int(wear[person_pair[0]][8]),  # f left_person_wear
                             person_pair[1] + 1,  # f right_person
-                            int(fruit[person_pair[1]][1]),  # f right_person_fruit
-                            int(wear[person_pair[1]][1]),  # f right_person_wear
+                            int(fruit[person_pair[1]][8]),  # f right_person_fruit
+                            int(wear[person_pair[1]][8]),  # f right_person_wear
                             selected_person + 1,  # f ch_person
-                            int(fruit[selected_person][1]),  # f ch_person_fruit
-                            int(wear[selected_person][1]),  # f ch_person_wear
+                            int(fruit[selected_person][8]),  # f ch_person_fruit
+                            int(wear[selected_person][8]),  # f ch_person_wear
                             key1,  # s key1
                             RT1 * 1000,  # f rt1
                             # outcomes
@@ -707,14 +712,14 @@ def mytrials(
                     t + 1,  # trial_num f +1 - changes from 0 to 1
                     # choice
                     person_pair[0] + 1,  # f left_person
-                    int(fruit[person_pair[0]][1]),  # f left_person_fruit
-                    int(wear[person_pair[0]][1]),  # f left_person_wear
+                    int(fruit[person_pair[0]][8]),  # f left_person_fruit
+                    int(wear[person_pair[0]][8]),  # f left_person_wear
                     person_pair[1] + 1,  # f right_person
-                    int(fruit[person_pair[1]][1]),  # f right_person_fruit
-                    int(wear[person_pair[1]][1]),  # f right_person_wear
+                    int(fruit[person_pair[1]][8]),  # f right_person_fruit
+                    int(wear[person_pair[1]][8]),  # f right_person_wear
                     selected_person + 1,  # f ch_person
-                    int(fruit[selected_person][1]),  # f ch_person_fruit
-                    int(wear[selected_person][1]),  # f ch_person_wear
+                    int(fruit[selected_person][8]),  # f ch_person_fruit
+                    int(wear[selected_person][8]),  # f ch_person_wear
                     key1,  # s key1
                     RT1 * 1000,  # f rt1
                     # outcomes
