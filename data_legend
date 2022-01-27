@@ -3,7 +3,7 @@
 subject 
 block_type (training/test) - whether its a train or test block
 block (1 to 5) - block number
-trial (1 to 50) - trial number
+trial (1 to 40) - trial number
 
 ##choice
 left_person (1 to 4) -  the person offered on the left side of the screen - referring to the numbers from "humansLst"
