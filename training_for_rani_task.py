@@ -23,24 +23,24 @@ win = visual.Window(
 win.mouseVisible = False
 
 humanLst = [
-    "m1.png",
-    "m2.png",
-    "w1.png",
-    "w2.png",
-    "m1.png",
-    "m2.png",
-    "w1.png",
-    "w2.png",
+    "images/m1.png",
+    "images/m2.png",
+    "images/w1.png",
+    "images/w2.png",
+    "images/m1.png",
+    "images/m2.png",
+    "images/w1.png",
+    "images/w2.png",
 ]
 fruitwear = [
-    "f1.png",
-    "f2.png",
-    "f2.png",
-    "f1.png",
-    "c1.png",
-    "c2.png",
-    "c1.png",
-    "c2.png",
+    "images/f1.png",
+    "images/f2.png",
+    "images/f2.png",
+    "images/f1.png",
+    "images/c1.png",
+    "images/c2.png",
+    "images/c1.png",
+    "images/c2.png",
 ]
 fixation = visual.TextStim(win, text="+", pos=[0, 0], color=(0, 0, 0))
 memory_refresh = visual.ImageStim(
@@ -49,12 +49,12 @@ memory_refresh = visual.ImageStim(
     pos=[0, 0],
     interpolate=True,
 )
-P1 = ["m1.png", "f1.png", "c1.png"]
-P2 = ["w2.png", "f1.png", "c2.png"]
-P3 = ["w1.png", "f2.png", "c1.png"]
-P4 = ["m2.png", "f2.png", "c2.png"]
+P1 = ["images/m1.png", "images/f1.png", "images/c1.png"]
+P2 = ["images/w2.png", "images/f1.png", "images/c2.png"]
+P3 = ["images/w1.png", "images/f2.png", "images/c1.png"]
+P4 = ["images/m2.png", "images/f2.png", "images/c2.png"]
 AllP = [P1, P2, P3, P4]
-SampleStims = ["f1.png", "f2.png", "c1.png", "c2.png"]
+SampleStims = ["images/f1.png", "images/f2.png", "images/c1.png", "images/c2.png"]
 
 # הוראות
 kb = keyboard.Keyboard()
@@ -91,7 +91,12 @@ while restart == True:
         if "escape" in keys:
             win.close()
             core.quit()
-        WrongStims = ["f1.png", "f2.png", "c1.png", "c2.png"]
+        WrongStims = [
+            "images/f1.png",
+            "images/f2.png",
+            "images/c1.png",
+            "images/c2.png",
+        ]
         for j in AllP:
             if j[0] == humanLst[i]:
                 print(WrongStims)
