@@ -3,11 +3,13 @@ from psychopy import core, visual, gui, data, event, clock, monitors
 from psychopy.hardware import keyboard
 import numpy as np
 
-# create a text file to save data
+# get subject_num
 expInfo = {"subject": "999"}
-dlg = gui.DlgFromDict(expInfo, title="Two-armed bandit task")
-fileName = "ranitask" + expInfo["subject"] + "_" + data.getDateStr()
+dlg = gui.DlgFromDict(expInfo, title="Two-armed bandit task")  # update expInfo
 subject_num = int(expInfo["subject"])
+
+# create a text file to save data
+fileName = "ranitask" + expInfo["subject"] + "_" + data.getDateStr()
 monitor_size = monitors.Monitor("testMonitor").getSizePix()
 dataFile = open(
     fileName + ".csv", "w"
@@ -15,6 +17,7 @@ dataFile = open(
 dataFile.write(
     "subject,block_type,block,trial, left_person,left_person_fruit,left_person_wear, right_person,right_person_fruit,right_person_wear, ch_person,ch_fruit,ch_wear,keypress1, rt1, exp_value_ch_fruit, reward_fruit, exp_value_ch_wear, reward_wear, keypress2, rt2, keypress3, rt3,first_product,second_product, fruit_location,exp_value_fruit1,exp_value_fruit2,wear_location,exp_value_wear1,exp_value_wear2,iti\n"
 )
+# create window display
 win = visual.Window(
     monitor="testMonitor",
     screen=0,
@@ -24,44 +27,59 @@ win = visual.Window(
     allowStencil=True,
 )
 win.mouseVisible = False
-# ser = serial.Serial("COM3", 9600)
 
+# declaration of persons' and objects' pictures
+person_list = [
+    "m1.png",
+    "m2.png",
+    "w1.png",
+    "w2.png",
+]  # those arrays are organized according to the model. m1 has f1 and c1, w2 has f1 and c2...
+fruit = ["f1.png", "f2.png", "f2.png", "f1.png"]  # f1 is bannana, f2 is orange
+wear = [
+    "c1.png",
+    "c2.png",
+    "c1.png",
+    "c2.png",
+]  # c refers to clothing, c1 is hat, c2 is shirt.
 
-humansLst = ["m1.png", "m2.png", "w1.png", "w2.png"]
-fruit = ["f1.png", "f2.png", "f2.png", "f1.png"]
-wear = ["c1.png", "c2.png", "c1.png", "c2.png"]
+# associating each person with its fruit and wear
 model = np.array(
     [[fruit[0], wear[0]], [fruit[1], wear[1]], [fruit[2], wear[2]], [fruit[3], wear[3]]]
 )
-# only pairs who share an object are valid
+# only pairs who share an object are valid, irrespictable of location
 valid_pairs = np.array([[0, 2], [2, 0], [0, 3], [3, 0], [1, 2], [2, 1], [1, 3], [3, 1]])
-cond = [3, 6]
-rndsmple = [3, -3]
+
+left_right_locations = [
+    3,
+    -3,
+]  # locations in pixels units referring to left or right locations of objects
 selected_person = None
+
+# declaration of visual components
 fixation = visual.TextStim(win, text="+", pos=[0, 0], color=(0, 0, 0))
-Tooslow = visual.TextStim(win, text="Too Slow", pos=[0, 0], color=(0, 0, 0))
-wrongkey = visual.TextStim(win, text="Wrong Key", pos=[0, 0], color=(0, 0, 0))
-call = visual.TextStim(win, text="call supervisor", pos=[0, 0], color=(0, 0, 0))
+too_slow = visual.TextStim(win, text="Too Slow", pos=[0, 0], color=(0, 0, 0))
+wrong_key = visual.TextStim(win, text="Wrong Key", pos=[0, 0], color=(0, 0, 0))
+call_supervisor = visual.TextStim(
+    win, text="Call supervisor", pos=[0, 0], color=(0, 0, 0)
+)
 game_pause = visual.ImageStim(
     win,
     image="instructions/instructions_test/game_pause.png",
     pos=[0, 0],
     interpolate=True,
 )
-# get counterbalanced randomwalk
+# random walk is counterbalanced according to subject_num
 if subject_num % 2 == 0:
-    rwalk = np.genfromtxt("rndwalk/rndwalk1.csv", delimiter=",")
-else:
     rwalk = np.genfromtxt("rndwalk/rndwalk2.csv", delimiter=",")
+else:
+    rwalk = np.genfromtxt("rndwalk/rndwalk1.csv", delimiter=",")
 r1 = rwalk[0, :]
 r2 = rwalk[1, :]
 r3 = rwalk[2, :]
 r4 = rwalk[3, :]
-print(r1)
 
-keych2 = 0
-
-
+# defining the rectangle used to mark selection
 def rect(x1, x2, y1, y2):
     a = visual.Line(win, start=(x1, y1), end=(x2, y1), size=10, lineColor=[1.0, -1, -1])
     b = visual.Line(win, start=(x1, y1), end=(x1, y2), size=10, lineColor=[1.0, -1, -1])
@@ -74,505 +92,486 @@ def rect(x1, x2, y1, y2):
     return
 
 
+# packs the drawing of the objects according to order
 def draws(one, two):
     one.draw()
     two.draw()
     return
 
 
-# defining a single trial
+# This function runs a loop of trials
+# number_of_trials,iti,ch_deadline,iti: wait_ch1 ,wait_ch2,wait_ch3,wait_outcome2,wait_outcome3
 def mytrials(
-    subject_num,
-    block_type,
-    Ntrls,
-    iti,
-    ch_deadline,
-    fdbck_ch1,
-    fdbck_ch2,
-    fdbck_ch3,
-    outcome_ch2,
-    outcome_ch3,
+    subject_num,  # the serial number of the subject
+    block_type,  # whether it is a training block or a test block
+    number_of_blocks,  # number of blocks
+    number_of_trials_in_block,  # number of trials to run in every block
+    iti,  # inter trial interval
+    ch_deadline,  # choice deadline
+    wait_ch1,  # waiting time after first choice
+    wait_ch2,  # waiting time after second choice
+    wait_ch3,  # waiting time after third choice
+    wait_outcome2,  # waiting time after second outcome
+    wait_outcome3,  # waiting time after third outcome
 ):
 
     # check keyboard presses
     kb = keyboard.Keyboard()
     kb.start()
-    trials_in_block = 5
-    block = 0
-    for t in range(Ntrls):
-        if t % trials_in_block == 0 & t != Ntrls - 1 & t != 0:
-            block += 1  # update block number
+
+    # for loop running on the number of blocks
+    for block in range(number_of_blocks):
+
+        # making pauses on every start of block which is not the first
+        if block != 0:
             game_pause.draw()
             win.update()
             event.waitKeys(keyList=["space"])
-        keys = kb.getKeys(["escape"])
-        if "escape" in keys:
-            win.close()
-            core.quit()
-        sampled_stim_idx = np.random.choice(8, 1)  # get a pair index
-        sampled_stim = valid_pairs[sampled_stim_idx[0]]  # get the pair values
-        rndlocation = np.random.choice(rndsmple, 2)
-        if rndlocation[0] == -3:  # this is the location on screen
-            fruit_loc = "left"
-        else:
-            fruit_loc = "right"
-        if rndlocation[1] == -3:
-            wear_loc = "left"
-        else:
-            wear_loc = "right"
-        # define the stimuli
-        LStim = visual.ImageStim(
-            win, image=humansLst[sampled_stim[0]], pos=[-6, 5], interpolate=True
-        )
-        RStim = visual.ImageStim(
-            win, image=humansLst[sampled_stim[1]], pos=[6, 5], interpolate=True
-        )
-        FruitStim = visual.ImageStim(
-            win, image=fruit[0], pos=[rndlocation[0], 0], size=2
-        )
-        WearStim = visual.ImageStim(
-            win, image=wear[0], pos=[rndlocation[1], -5], size=2
-        )
-        FruitCvr = visual.ImageStim(win, image="fruit.png", pos=[rndlocation[0], 0])
-        WearCvr = visual.ImageStim(win, image="clothing.png", pos=[rndlocation[1], -5])
-        GreenBase = visual.ImageStim(
-            win, image="greenbase.png", pos=[-rndlocation[1], -6]
-        )
-        GreenBase1 = visual.ImageStim(
-            win, image="greenbase.png", pos=[-rndlocation[0], -0.5]
-        )
-
-        # define won/lost feedback, some stimuli
-        won = visual.ImageStim(
-            win, image="rw.jpg", pos=[0, 0], size=2, interpolate=True
-        )
-        lost = visual.ImageStim(
-            win, image="ur.jpg", pos=[0, 0], size=2, interpolate=True
-        )
-
-        # draw the stimuli and update the window
-        win.flip(clearBuffer=True)
-        fixation.draw()
-        win.update()
-        core.wait(iti)
-        LStim.draw()
-        RStim.draw()
-        FruitCvr.draw()
-        WearCvr.draw()
-        GreenBase.draw()
-        GreenBase1.draw()
-        rect(-0.7, 0.7, 0.3, 0.7)
-        win.update()
-        myclock = core.Clock()
-
-        # wait for keypress
-        keysEvent = event.waitKeys(maxWait=ch_deadline, timeStamped=myclock)
-        if keysEvent == None:
-            Tooslow.draw()
-            win.update()
-            core.wait(1)
-            dataFile.write(
-                "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f ,%f,%f,%f,%f ,%f,%f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f,%f\n"
-                % (
-                    # general
-                    subject_num,  # f
-                    block_type,  # s
-                    block + 1,  # f +1 - changes from 0 to 1
-                    t - trials_in_block * (block) + 1,  # f +1 - changes from 0 to 1
-                    # choice
-                    sampled_stim[0] + 1,  # f left_person
-                    int(fruit[sampled_stim[0]][1]),  # f left_person_fruit
-                    int(wear[sampled_stim[0]][1]),  # f left_person_wear
-                    sampled_stim[1] + 1,  # f right_person
-                    int(fruit[sampled_stim[1]][1]),  # f right_person_fruit
-                    int(wear[sampled_stim[1]][1]),  # f right_person_wear
-                    np.nan,  # f ch_person
-                    np.nan,  # f ch_person_fruit
-                    np.nan,  # f ch_person_wear
-                    np.nan,  # s key1
-                    np.nan,  # f rt1
-                    # outcomes
-                    np.nan,  # f  exp_value_ch_fruit
-                    np.nan,  # f reward_fruit
-                    np.nan,  # f exp_value_ch_wear
-                    np.nan,  # f reward_ch_wear
-                    np.nan,  # s key2
-                    np.nan,  # f rt2
-                    np.nan,  # f key3
-                    np.nan,  # f rt3
-                    np.nan,  # s first_product (fruit/wear)
-                    np.nan,  # s second_product (fruit/wear)
-                    np.nan,  # s fruit_loc
-                    r1[t],  # f exp_value_fruit1
-                    r2[t],  # f exp_value_fruit2
-                    np.nan,  # s wear_loc
-                    r3[t],  # f exp_value_wear1
-                    r4[t],  # f exp_value_wear2
-                    iti,  # f iti
-                )
-            )
-            continue
-        keys, RT1 = keysEvent[0]
-
-        # set the variables by the selected choice (left or right)
-        if keys == "s":
-            selected_person = sampled_stim[0]
-            UnselectedPerson = sampled_stim[1]
-            FruitStim.image = fruit[selected_person]
-            WearStim.image = wear[selected_person]
-            PresentedStim = LStim
-        elif keys == "k":
-            selected_person = sampled_stim[1]
-            UnselectedPerson = sampled_stim[0]
-            FruitStim.image = fruit[selected_person]
-            WearStim.image = wear[selected_person]
-            PresentedStim = RStim
-        elif keys == "space":
-            dataFile.write(
-                "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f ,%f,%f,%f,%f ,%f,%f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f,%f\n"
-                % (
-                    # general
-                    subject_num,  # f
-                    block_type,  # s
-                    block + 1,  # f +1 - changes from 0 to 1
-                    t - trials_in_block * (block) + 1,  # f +1 - changes from 0 to 1
-                    # choice
-                    sampled_stim[0] + 1,  # f left_person
-                    int(fruit[sampled_stim[0]][1]),  # f left_person_fruit
-                    int(wear[sampled_stim[0]][1]),  # f left_person_wear
-                    sampled_stim[1] + 1,  # f right_person
-                    int(fruit[sampled_stim[1]][1]),  # f right_person_fruit
-                    int(wear[sampled_stim[1]][1]),  # f right_person_wear
-                    np.nan,  # f ch_person
-                    np.nan,  # f ch_person_fruit
-                    np.nan,  # f ch_person_wear
-                    np.nan,  # s key1
-                    np.nan,  # f rt1
-                    # outcomes
-                    np.nan,  # f  exp_value_ch_fruit
-                    np.nan,  # f reward_fruit
-                    np.nan,  # f exp_value_ch_wear
-                    np.nan,  # f reward_ch_wear
-                    np.nan,  # s key2
-                    np.nan,  # f rt2
-                    np.nan,  # f key3
-                    np.nan,  # f rt3
-                    np.nan,  # s first_product (fruit/wear)
-                    np.nan,  # s second_product (fruit/wear)
-                    np.nan,  # s fruit_loc
-                    r1[t],  # f exp_value_fruit1
-                    r2[t],  # f exp_value_fruit2
-                    np.nan,  # s wear_loc
-                    r3[t],  # f exp_value_wear1
-                    r4[t],  # f exp_value_wear2
-                    iti,  # f iti
-                )
-            )
-            call.draw()
-            win.update()
-            event.waitKeys(keyList=["space"])
-            core.wait(2)
-            continue
-        else:
-            wrongkey.draw()
-            win.update()
-            core.wait(1)
-            dataFile.write(
-                "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f ,%f,%f,%f,%f ,%f,%f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f,%f\n"
-                % (
-                    # general
-                    subject_num,  # f
-                    block_type,  # s
-                    block + 1,  # f +1 - changes from 0 to 1
-                    t - trials_in_block * (block) + 1,  # f +1 - changes from 0 to 1
-                    # choice
-                    sampled_stim[0] + 1,  # f left_person
-                    int(fruit[sampled_stim[0]][1]),  # f left_person_fruit
-                    int(wear[sampled_stim[0]][1]),  # f left_person_wear
-                    sampled_stim[1] + 1,  # f right_person
-                    int(fruit[sampled_stim[1]][1]),  # f right_person_fruit
-                    int(wear[sampled_stim[1]][1]),  # f right_person_wear
-                    np.nan,  # f ch_person
-                    np.nan,  # f ch_person_fruit
-                    np.nan,  # f ch_person_wear
-                    np.nan,  # s key1
-                    np.nan,  # f rt1
-                    # outcomes
-                    np.nan,  # f  exp_value_ch_fruit
-                    np.nan,  # f reward_fruit
-                    np.nan,  # f exp_value_ch_wear
-                    np.nan,  # f reward_ch_wear
-                    np.nan,  # s key2
-                    np.nan,  # f rt2
-                    np.nan,  # f key3
-                    np.nan,  # f rt3
-                    np.nan,  # s first_product (fruit/wear)
-                    np.nan,  # s second_product (fruit/wear)
-                    np.nan,  # s fruit_loc
-                    r1[t],  # f exp_value_fruit1
-                    r2[t],  # f exp_value_fruit2
-                    np.nan,  # s wear_loc
-                    r3[t],  # f exp_value_wear1
-                    r4[t],  # f exp_value_wear2
-                    iti,  # f iti
-                )
-            )
-            continue
-        trialStims = (FruitStim.image + WearStim.image).replace(".png", "")
-        ProbsFruit = [
-            r1[t],
-            r2[t],
-            r2[t],
-            r1[t],
-        ]  # t starts from 1, and the python file from 0.
-        ProbsWear = [r3[t], r4[t], r3[t], r4[t]]
-        print(trialStims)
-        print(ProbsFruit[selected_person])
-        print(ProbsWear[selected_person])
-        # check if won/lost by predetermined probablity of selected_person
-        if np.random.random() < ProbsFruit[selected_person]:
-            RewardFruit = won
-            ResultFruit = 1
-        else:
-            RewardFruit = lost
-            ResultFruit = 0
-        if np.random.random() < ProbsWear[selected_person]:
-            RewardWear = won
-            ResultWear = 1
-        else:
-            RewardWear = lost
-            ResultWear = 0
-
-        # Counterbalance of stim presentation - Fruit first or Clothing first.
-        topFirst = np.random.choice(("FruitFirst", "WearFirst"), 1)
-        if topFirst == "FruitFirst":
-            FirstRecDraw = (-0.7, 0.7, -0.24, 0.26)
-            SecRecDraw = (-0.7, 0.7, -0.78, -0.24)
-            Draw12 = (FruitStim, WearCvr)
-            Draw3 = (FruitCvr, WearCvr)
-            Draw456 = (FruitCvr, WearStim)
-            Reward1 = RewardFruit
-            Reward2 = RewardWear
-            Rpos1 = 0
-            Rpos2 = -5
-            FrstLocation = FruitStim.pos[0]
-            ScndLocation = WearStim.pos[0]
-            first_product = "fruit"
-            second_product = "wear"
-
-        else:
-            FirstRecDraw = (-0.7, 0.7, -0.78, -0.24)
-            SecRecDraw = (-0.7, 0.7, -0.24, 0.26)
-            Draw12 = (FruitCvr, WearStim)
-            Draw3 = (FruitCvr, WearCvr)
-            Draw456 = (FruitStim, WearCvr)
-            Reward1 = RewardWear
-            Reward2 = RewardFruit
-            Rpos1 = -5
-            Rpos2 = 0
-            FrstLocation = WearStim.pos[0]
-            ScndLocation = FruitStim.pos[0]
-            first_product = "wear"
-            second_product = "fruit"
-
-        # the task itself, drawing the stimuli and the feedbacks
-        PresentedStim.autoDraw = True
-        FruitCvr.draw()
-        WearCvr.draw()
-        rect(-0.7, 0.7, 0.3, 0.7)
-        win.flip()
-        core.wait(fdbck_ch1)
-        FruitCvr.draw()
-        WearCvr.draw()
-        rect(*FirstRecDraw)
-        win.callOnFlip(myclock.reset)
-        win.flip()
-        keych2 = event.waitKeys(maxWait=ch_deadline, timeStamped=myclock)
-        if keych2 == None:  # no response
-            PresentedStim.autoDraw = False
-            Tooslow.draw()
-            win.update()
-            core.wait(1)
-            # write the trial data and continue to next trial
-            dataFile.write(
-                "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%s,%f ,%f,%f,%f,%f ,%f,%f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f,%f\n"
-                % (
-                    # general
-                    subject_num,  # f
-                    block_type,  # s
-                    block + 1,  # f +1 - changes from 0 to 1
-                    t - trials_in_block * (block) + 1,  # f +1 - changes from 0 to 1
-                    # choice
-                    sampled_stim[0] + 1,  # f left_person
-                    int(fruit[sampled_stim[0]][1]),  # f left_person_fruit
-                    int(wear[sampled_stim[0]][1]),  # f left_person_wear
-                    sampled_stim[1] + 1,  # f right_person
-                    int(fruit[sampled_stim[1]][1]),  # f right_person_fruit
-                    int(wear[sampled_stim[1]][1]),  # f right_person_wear
-                    selected_person + 1,  # f ch_person
-                    int(fruit[selected_person][1]),  # f ch_person_fruit
-                    int(wear[selected_person][1]),  # f ch_person_wear
-                    keys,  # s key1
-                    RT1 * 1000,  # f rt1
-                    # outcomes
-                    np.nan,  # f  exp_value_ch_fruit
-                    np.nan,  # f reward_fruit
-                    np.nan,  # f exp_value_ch_wear
-                    np.nan,  # f reward_ch_wear
-                    np.nan,  # s key2
-                    np.nan,  # f rt2
-                    np.nan,  # f key3
-                    np.nan,  # f rt3
-                    np.nan,  # s first_product (fruit/wear)
-                    np.nan,  # s second_product (fruit/wear)
-                    np.nan,  # s fruit_loc
-                    r1[t],  # f exp_value_fruit1
-                    r2[t],  # f exp_value_fruit2
-                    np.nan,  # s wear_loc
-                    r3[t],  # f exp_value_wear1
-                    r4[t],  # f exp_value_wear2
-                    iti,  # f iti
-                )
-            )
-            continue
-        elif (
-            (keych2[0][0] == "s" and FrstLocation != -3.0)
-            or (keych2[0][0] == "k" and FrstLocation != 3.0)
-            or (keych2[0][0] not in ("s", "k"))
-        ):  # wrong key or opposite key
-            PresentedStim.autoDraw = False
-            wrongkey.draw()
-            win.update()
-            core.wait(1)
-            dataFile.write(
-                "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%s,%f ,%f,%f,%f,%f ,%f,%f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f,%f\n"
-                % (
-                    # general
-                    subject_num,  # f
-                    block_type,  # s
-                    block + 1,  # f +1 - changes from 0 to 1
-                    t - trials_in_block * (block) + 1,  # f +1 - changes from 0 to 1
-                    # choice
-                    sampled_stim[0] + 1,  # f left_person
-                    int(fruit[sampled_stim[0]][1]),  # f left_person_fruit
-                    int(wear[sampled_stim[0]][1]),  # f left_person_wear
-                    sampled_stim[1] + 1,  # f right_person
-                    int(fruit[sampled_stim[1]][1]),  # f right_person_fruit
-                    int(wear[sampled_stim[1]][1]),  # f right_person_wear
-                    selected_person + 1,  # f ch_person
-                    int(fruit[selected_person][1]),  # f ch_person_fruit
-                    int(wear[selected_person][1]),  # f ch_person_wear
-                    keys,  # s key1
-                    RT1 * 1000,  # f rt1
-                    # outcomes
-                    np.nan,  # f  exp_value_ch_fruit
-                    np.nan,  # f reward_fruit
-                    np.nan,  # f exp_value_ch_wear
-                    np.nan,  # f reward_ch_wear
-                    np.nan,  # s key2
-                    np.nan,  # f rt2
-                    np.nan,  # f key3
-                    np.nan,  # f rt3
-                    np.nan,  # s first_product (fruit/wear)
-                    np.nan,  # s second_product (fruit/wear)
-                    np.nan,  # s fruit_loc
-                    r1[t],  # f exp_value_fruit1
-                    r2[t],  # f exp_value_fruit2
-                    np.nan,  # s wear_loc
-                    r3[t],  # f exp_value_wear1
-                    r4[t],  # f exp_value_wear2
-                    iti,  # f iti
-                )
-            )
-            continue
-        key2, RT2 = keych2[0]
-        # print(keych2)
-        # d1
-        draws(*Draw12)
-        rect(*FirstRecDraw)
-        win.flip()
-        core.wait(fdbck_ch2)
-        # d2
-        draws(*Draw12)
-        won.pos = [0, Rpos1]
-        lost.pos = [0, Rpos1]
-        Reward1.draw()
-        rect(*FirstRecDraw)
-        win.flip()
-        core.wait(outcome_ch2)
-        # d3
-        draws(*Draw3)
-        rect(*SecRecDraw)
-        win.callOnFlip(myclock.reset)
-        win.flip()
-        keych3 = event.waitKeys(maxWait=ch_deadline, timeStamped=myclock)
-        if keych3 == None:  # no response
-            if topFirst == ["FruitFirst"]:
-                ProbsWear = [np.nan, np.nan, np.nan, np.nan]
-                ResultWear = np.nan
+        # for loop running on each trial
+        for t in range(number_of_trials_in_block):
+            # aborting the experiment if escape is pressed
+            keys = kb.getKeys(["escape"])
+            if "escape" in keys:
+                win.close()
+                core.quit()
+            # get the current pair out of possible 8 pairs
+            person_pair = valid_pairs[np.random.choice(8, 1)[0]]
+            # draw randomly the locations of the fruit and of the wear
+            fruit_loc_pxl = np.random.choice(left_right_locations)
+            wear_loc_pxl = np.random.choice(left_right_locations)
+            if fruit_loc_pxl == -3:  # this is the location on screen
+                fruit_loc = "left"
             else:
-                ProbsFruit = [np.nan, np.nan, np.nan, np.nan]
-                ResultFruit = np.nan
-            PresentedStim.autoDraw = False
-            Tooslow.draw()
-            win.update()
-            core.wait(1)
-            dataFile.write(
-                "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%s,%f ,%f,%f,%f,%f ,%s,%f,%f,%f ,%s,%s,%s ,%f,%f,%s ,%f,%f,%f\n"
-                % (
-                    # general
-                    subject_num,  # f
-                    block_type,  # s
-                    block + 1,  # f +1 - changes from 0 to 1
-                    t - trials_in_block * (block) + 1,  # f +1 - changes from 0 to 1
-                    # choice
-                    sampled_stim[0] + 1,  # f left_person
-                    int(fruit[sampled_stim[0]][1]),  # f left_person_fruit
-                    int(wear[sampled_stim[0]][1]),  # f left_person_wear
-                    sampled_stim[1] + 1,  # f right_person
-                    int(fruit[sampled_stim[1]][1]),  # f right_person_fruit
-                    int(wear[sampled_stim[1]][1]),  # f right_person_wear
-                    selected_person + 1,  # f ch_person
-                    int(fruit[selected_person][1]),  # f ch_person_fruit
-                    int(wear[selected_person][1]),  # f ch_person_wear
-                    keys,  # s key1
-                    RT1 * 1000,  # f rt1
-                    # outcomes
-                    ProbsFruit[selected_person],  # f  exp_value_ch_fruit
-                    ResultFruit,  # f reward_fruit
-                    ProbsWear[selected_person],  # f exp_value_ch_wear
-                    ResultWear,  # f reward_ch_wear
-                    key2,  # s key2
-                    RT2 * 1000,  # f rt2
-                    np.nan,  # f key3
-                    np.nan,  # f rt3
-                    first_product,  # s first_product (fruit/wear)
-                    second_product,  # s second_product (fruit/wear)
-                    fruit_loc,  # s fruit_loc
-                    r1[t],  # f exp_value_fruit1
-                    r2[t],  # f exp_value_fruit2
-                    wear_loc,  # s wear_loc
-                    r3[t],  # f exp_value_wear1
-                    r4[t],  # f exp_value_wear2
-                    iti,  # f iti
-                )
-            )
-            continue
-        elif (
-            (keych3[0][0] == "s" and ScndLocation != -3.0)
-            or (keych3[0][0] == "k" and ScndLocation != 3.0)
-            or (keych3[0][0] not in ("s", "k"))
-        ):  # wrong key or opposite key
-            PresentedStim.autoDraw = False
-            wrongkey.draw()
-            win.update()
-            core.wait(1)
-            if topFirst == ["FruitFirst"]:
-                ProbsWear = [np.nan, np.nan, np.nan, np.nan]
-                ResultWear = np.nan
+                fruit_loc = "right"
+            if wear_loc_pxl == -3:
+                wear_loc = "left"
             else:
-                ProbsFruit = [np.nan, np.nan, np.nan, np.nan]
-                ResultFruit = np.nan
+                wear_loc = "right"
+
+            # counterbalance of stimulus presentation - fruit shown first or wear first.
+            fruit_appear_first = np.random.choice(2)
+            # define the stimuli according to the raffled pair
+            left_person = visual.ImageStim(
+                win, image=person_list[person_pair[0]], pos=[-6, 5], interpolate=True
+            )
+            right_person = visual.ImageStim(
+                win, image=person_list[person_pair[1]], pos=[6, 5], interpolate=True
+            )
+            fruit_stimulus = visual.ImageStim(
+                win, image=fruit[0], pos=[fruit_loc_pxl, 0], size=2
+            )
+            fruit_cover = visual.ImageStim(
+                win, image="fruit_cvr.png", pos=[fruit_loc_pxl, 0]
+            )
+            wear_stimulus = visual.ImageStim(
+                win, image=wear[0], pos=[wear_loc_pxl, -5], size=2
+            )
+            wear_cover = visual.ImageStim(
+                win, image="wear_cvr.png", pos=[wear_loc_pxl, -5]
+            )
+
+            fruit_green_base = visual.ImageStim(
+                win, image="greenbase.png", pos=[-fruit_loc_pxl, -0.5]
+            )
+            wear_green_base = visual.ImageStim(
+                win, image="greenbase.png", pos=[-wear_loc_pxl, -6]
+            )
+
+            # define won/lost feedback, some stimuli
+            won = visual.ImageStim(
+                win, image="rw.jpg", pos=[0, 0], size=2, interpolate=True
+            )
+            lost = visual.ImageStim(
+                win, image="ur.jpg", pos=[0, 0], size=2, interpolate=True
+            )
+
+            # draw the stimuli and update the window
+            win.flip(clearBuffer=True)
+            fixation.draw()
+            win.update()
+            core.wait(iti)
+            left_person.draw()
+            right_person.draw()
+            fruit_cover.draw()
+            wear_cover.draw()
+            fruit_green_base.draw()
+            wear_green_base.draw()
+            rect(-0.7, 0.7, 0.3, 0.7)
+            win.update()
+            myclock = core.Clock()
+
+            # wait for person choice
+            keysEvent = event.waitKeys(maxWait=ch_deadline, timeStamped=myclock)
+
+            # if no response was pressed, show "Too Slow" and save current trial to csv
+            if keysEvent == None:
+                too_slow.draw()
+                win.update()
+                core.wait(1)
+                dataFile.write(
+                    "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f ,%f,%f,%f,%f ,%f,%f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f,%f\n"
+                    % (
+                        # general
+                        subject_num,  # f
+                        block_type,  # s
+                        block + 1,  # f change to R notation from python notation
+                        t + 1,  # f
+                        # choice
+                        person_pair[0] + 1,  # f left_person
+                        int(fruit[person_pair[0]][1]),  # f left_person_fruit
+                        int(wear[person_pair[0]][1]),  # f left_person_wear
+                        person_pair[1] + 1,  # f right_person
+                        int(fruit[person_pair[1]][1]),  # f right_person_fruit
+                        int(wear[person_pair[1]][1]),  # f right_person_wear
+                        np.nan,  # f ch_person
+                        np.nan,  # f ch_person_fruit
+                        np.nan,  # f ch_person_wear
+                        np.nan,  # s key1
+                        np.nan,  # f rt1
+                        # outcomes
+                        np.nan,  # f  exp_value_ch_fruit
+                        np.nan,  # f reward_fruit
+                        np.nan,  # f exp_value_ch_wear
+                        np.nan,  # f reward_ch_wear
+                        np.nan,  # s key2
+                        np.nan,  # f rt2
+                        np.nan,  # f key3
+                        np.nan,  # f rt3
+                        np.nan,  # s first_product (fruit/wear)
+                        np.nan,  # s second_product (fruit/wear)
+                        np.nan,  # s fruit_loc
+                        r1[t + block * number_of_trials_in_block],  # f exp_value_fruit1
+                        r2[t + block * number_of_trials_in_block],  # f exp_value_fruit2
+                        np.nan,  # s wear_loc
+                        r3[t + block * number_of_trials_in_block],  # f exp_value_wear1
+                        r4[t + block * number_of_trials_in_block],  # f exp_value_wear2
+                        iti,  # f iti
+                    )
+                )
+                continue
+
+            # set the stimulus by the selected choice (left or right)
+            key1, RT1 = keysEvent[0]
+            if key1 == "s":
+                selected_person = person_pair[0]
+                unselectedPerson = person_pair[1]
+                # the fruit and wear arrays are organized according to the model, thus choosing fruit[selected_person] gives the selected_person's fruit.
+                fruit_stimulus.image = fruit[selected_person]
+                wear_stimulus.image = wear[selected_person]
+                presented_person = left_person
+            elif key1 == "k":
+                selected_person = person_pair[1]
+                unselectedPerson = person_pair[0]
+                fruit_stimulus.image = fruit[selected_person]
+                wear_stimulus.image = wear[selected_person]
+                presented_person = right_person
+
+            # if space was pressed it means the participants wanted a break
+            elif key1 == "space":
+                dataFile.write(
+                    "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f ,%f,%f,%f,%f ,%f,%f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f,%f\n"
+                    % (
+                        # general
+                        subject_num,  # f
+                        block_type,  # s
+                        block + 1,  # f +1 changes from 0 to 1
+                        t + 1,  # f +1 changes from 0 to 1
+                        # choice
+                        person_pair[0] + 1,  # f left_person
+                        int(fruit[person_pair[0]][1]),  # f left_person_fruit
+                        int(wear[person_pair[0]][1]),  # f left_person_wear
+                        person_pair[1] + 1,  # f right_person
+                        int(fruit[person_pair[1]][1]),  # f right_person_fruit
+                        int(wear[person_pair[1]][1]),  # f right_person_wear
+                        np.nan,  # f ch_person
+                        np.nan,  # f ch_person_fruit
+                        np.nan,  # f ch_person_wear
+                        np.nan,  # s key1
+                        np.nan,  # f rt1
+                        # outcomes
+                        np.nan,  # f  exp_value_ch_fruit
+                        np.nan,  # f reward_fruit
+                        np.nan,  # f exp_value_ch_wear
+                        np.nan,  # f reward_ch_wear
+                        np.nan,  # s key2
+                        np.nan,  # f rt2
+                        np.nan,  # f key3
+                        np.nan,  # f rt3
+                        np.nan,  # s first_product (fruit/wear)
+                        np.nan,  # s second_product (fruit/wear)
+                        np.nan,  # s fruit_loc
+                        r1[t + block * number_of_trials_in_block],  # f exp_value_fruit1
+                        r2[t + block * number_of_trials_in_block],  # f exp_value_fruit2
+                        np.nan,  # s wear_loc
+                        r3[t + block * number_of_trials_in_block],  # f exp_value_wear1
+                        r4[t + block * number_of_trials_in_block],  # f exp_value_wear2
+                        iti,  # f iti
+                    )
+                )
+                call_supervisor.draw()
+                win.update()
+                event.waitKeys(keyList=["space"])
+                core.wait(2)
+                continue
+
+            # if another key was chosen it means a wrong key was pressed
+            else:
+                wrong_key.draw()
+                win.update()
+                core.wait(1)
+                dataFile.write(
+                    "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f ,%f,%f,%f,%f ,%f,%f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f,%f\n"
+                    % (
+                        # general
+                        subject_num,  # f
+                        block_type,  # s
+                        block + 1,  # f +1 - changes from 0 to 1
+                        t + 1,  # f +1 - changes from 0 to 1
+                        # choice
+                        person_pair[0] + 1,  # f left_person
+                        int(fruit[person_pair[0]][1]),  # f left_person_fruit
+                        int(wear[person_pair[0]][1]),  # f left_person_wear
+                        person_pair[1] + 1,  # f right_person
+                        int(fruit[person_pair[1]][1]),  # f right_person_fruit
+                        int(wear[person_pair[1]][1]),  # f right_person_wear
+                        np.nan,  # f ch_person
+                        np.nan,  # f ch_person_fruit
+                        np.nan,  # f ch_person_wear
+                        np.nan,  # s key1
+                        np.nan,  # f rt1
+                        # outcomes
+                        np.nan,  # f  exp_value_ch_fruit
+                        np.nan,  # f reward_fruit
+                        np.nan,  # f exp_value_ch_wear
+                        np.nan,  # f reward_ch_wear
+                        np.nan,  # s key2
+                        np.nan,  # f rt2
+                        np.nan,  # f key3
+                        np.nan,  # f rt3
+                        np.nan,  # s first_product (fruit/wear)
+                        np.nan,  # s second_product (fruit/wear)
+                        np.nan,  # s fruit_loc
+                        r1[t + block * number_of_trials_in_block],  # f exp_value_fruit1
+                        r2[t + block * number_of_trials_in_block],  # f exp_value_fruit2
+                        np.nan,  # s wear_loc
+                        r3[t + block * number_of_trials_in_block],  # f exp_value_wear1
+                        r4[t + block * number_of_trials_in_block],  # f exp_value_wear2
+                        iti,  # f iti
+                    )
+                )
+                continue
+            # fruit reward probabilities refers to lines 1 and 2 and wear to lines 3 and 4 in the random walk csv file.
+            # to attach reward probabilities to persons, we create the following arrays.
+            # we don't reset the reward probabilities in each block, so we take the relevant column from the randomwalk.
+            fruit_reward_probs = [
+                r1[t + block * number_of_trials_in_block],
+                r2[t + block * number_of_trials_in_block],
+                r2[t + block * number_of_trials_in_block],
+                r1[t + block * number_of_trials_in_block],
+            ]
+            wear_reward_probs = [
+                r3[t + block * number_of_trials_in_block],
+                r4[t + block * number_of_trials_in_block],
+                r3[t + block * number_of_trials_in_block],
+                r4[t + block * number_of_trials_in_block],
+            ]
+
+            # check if won/lost by predetermined probablity of selected_person
+            if np.random.random() < fruit_reward_probs[selected_person]:
+                fruit_reward = 1
+                fruit_reward_stimuli = won
+            else:
+                fruit_reward = 0
+                fruit_reward_stimuli = lost
+            if np.random.random() < wear_reward_probs[selected_person]:
+                wear_reward = 1
+                wear_reward_stimuli = won
+            else:
+                wear_reward = 0
+                wear_reward_stimuli = lost
+
+            # draw according to counterbalanced order of object appearance
+            if fruit_appear_first:
+                first_rectangle_loc = (-0.7, 0.7, -0.24, 0.26)
+                second_rectangle_loc = (-0.7, 0.7, -0.78, -0.24)
+                draw_first_object = (fruit_stimulus, wear_cover)
+                draw_covers = (fruit_cover, wear_cover)
+                draw_second_stimulus = (fruit_cover, wear_stimulus)
+                first_reward = fruit_reward_stimuli
+                second_reward = wear_reward_stimuli
+                first_reward_position = 0
+                second_reward_position = -5
+                first_object_loc = fruit_stimulus.pos[0]
+                second_object_loc = wear_stimulus.pos[0]
+                first_product = "fruit"
+                second_product = "wear"
+
+            else:
+                first_rectangle_loc = (-0.7, 0.7, -0.78, -0.24)
+                second_rectangle_loc = (-0.7, 0.7, -0.24, 0.26)
+                draw_first_object = (fruit_cover, wear_stimulus)
+                draw_covers = (fruit_cover, wear_cover)
+                draw_second_stimulus = (fruit_stimulus, wear_cover)
+                first_reward = wear_reward_stimuli
+                second_reward = fruit_reward_stimuli
+                first_reward_position = -5
+                second_reward_position = 0
+                first_object_loc = wear_stimulus.pos[0]
+                second_object_loc = fruit_stimulus.pos[0]
+                first_product = "wear"
+                second_product = "fruit"
+
+            # drawing the stimuli
+            presented_person.autoDraw = True
+            fruit_cover.draw()
+            wear_cover.draw()
+            rect(-0.7, 0.7, 0.3, 0.7)
+            win.flip()
+            core.wait(wait_ch1)
+            fruit_cover.draw()
+            wear_cover.draw()
+            rect(*first_rectangle_loc)
+            win.callOnFlip(myclock.reset)
+            win.flip()
+
+            # wait for second keypress
+            keych2 = event.waitKeys(maxWait=ch_deadline, timeStamped=myclock)
+            # abort trial if no response
+            if keych2 == None:
+                presented_person.autoDraw = False
+                too_slow.draw()
+                win.update()
+                core.wait(1)
+                # write the trial data and continue to the next trial
+                dataFile.write(
+                    "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%s,%f ,%f,%f,%f,%f ,%f,%f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f,%f\n"
+                    % (
+                        # general
+                        subject_num,  # f
+                        block_type,  # s
+                        block + 1,  # f +1 - changes from 0 to 1
+                        t + 1,  # f +1 - changes from 0 to 1
+                        # choice
+                        person_pair[0] + 1,  # f left_person
+                        int(fruit[person_pair[0]][1]),  # f left_person_fruit
+                        int(wear[person_pair[0]][1]),  # f left_person_wear
+                        person_pair[1] + 1,  # f right_person
+                        int(fruit[person_pair[1]][1]),  # f right_person_fruit
+                        int(wear[person_pair[1]][1]),  # f right_person_wear
+                        selected_person + 1,  # f ch_person
+                        int(fruit[selected_person][1]),  # f ch_person_fruit
+                        int(wear[selected_person][1]),  # f ch_person_wear
+                        key1,  # s key1
+                        RT1 * 1000,  # f rt1
+                        # outcomes
+                        np.nan,  # f  exp_value_ch_fruit
+                        np.nan,  # f reward_fruit
+                        np.nan,  # f exp_value_ch_wear
+                        np.nan,  # f reward_ch_wear
+                        np.nan,  # s key2
+                        np.nan,  # f rt2
+                        np.nan,  # f key3
+                        np.nan,  # f rt3
+                        np.nan,  # s first_product (fruit/wear)
+                        np.nan,  # s second_product (fruit/wear)
+                        np.nan,  # s fruit_loc
+                        r1[t + block * number_of_trials_in_block],  # f exp_value_fruit1
+                        r2[t + block * number_of_trials_in_block],  # f exp_value_fruit2
+                        np.nan,  # s wear_loc
+                        r3[t + block * number_of_trials_in_block],  # f exp_value_wear1
+                        r4[t + block * number_of_trials_in_block],  # f exp_value_wear2
+                        iti,  # f iti
+                    )
+                )
+                continue
+            # check if wrong key or opposite key
+            elif (
+                (keych2[0][0] == "s" and first_object_loc != -3.0)
+                or (keych2[0][0] == "k" and first_object_loc != 3.0)
+                or (keych2[0][0] not in ("s", "k"))
+            ):
+                presented_person.autoDraw = False
+                wrong_key.draw()
+                win.update()
+                core.wait(1)
+                dataFile.write(
+                    "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%s,%f ,%f,%f,%f,%f ,%f,%f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f,%f\n"
+                    % (
+                        # general
+                        subject_num,  # f
+                        block_type,  # s
+                        block + 1,  # f +1 - changes from 0 to 1
+                        t + 1,  # f +1 - changes from 0 to 1
+                        # choice
+                        person_pair[0] + 1,  # f left_person
+                        int(fruit[person_pair[0]][1]),  # f left_person_fruit
+                        int(wear[person_pair[0]][1]),  # f left_person_wear
+                        person_pair[1] + 1,  # f right_person
+                        int(fruit[person_pair[1]][1]),  # f right_person_fruit
+                        int(wear[person_pair[1]][1]),  # f right_person_wear
+                        selected_person + 1,  # f ch_person
+                        int(fruit[selected_person][1]),  # f ch_person_fruit
+                        int(wear[selected_person][1]),  # f ch_person_wear
+                        key1,  # s key1
+                        RT1 * 1000,  # f rt1
+                        # outcomes
+                        np.nan,  # f  exp_value_ch_fruit
+                        np.nan,  # f reward_fruit
+                        np.nan,  # f exp_value_ch_wear
+                        np.nan,  # f reward_ch_wear
+                        np.nan,  # s key2
+                        np.nan,  # f rt2
+                        np.nan,  # f key3
+                        np.nan,  # f rt3
+                        np.nan,  # s first_product (fruit/wear)
+                        np.nan,  # s second_product (fruit/wear)
+                        np.nan,  # s fruit_loc
+                        r1[t + block * number_of_trials_in_block],  # f exp_value_fruit1
+                        r2[t + block * number_of_trials_in_block],  # f exp_value_fruit2
+                        np.nan,  # s wear_loc
+                        r3[t + block * number_of_trials_in_block],  # f exp_value_wear1
+                        r4[t + block * number_of_trials_in_block],  # f exp_value_wear2
+                        iti,  # f iti
+                    )
+                )
+                continue
+            key2, RT2 = keych2[0]
+
+            # draw first object
+            draws(*draw_first_object)
+            rect(*first_rectangle_loc)
+            win.flip()
+            core.wait(wait_ch2)
+            draws(*draw_first_object)
+            # defining the location of the reward
+            won.pos = [0, first_reward_position]
+            lost.pos = [0, first_reward_position]
+            first_reward.draw()
+            rect(*first_rectangle_loc)
+            win.flip()
+            core.wait(wait_outcome2)
+            # d3
+            draws(*draw_covers)
+            rect(*second_rectangle_loc)
+            win.callOnFlip(myclock.reset)
+            win.flip()
+
+            # wait for third keypress
+            keych3 = event.waitKeys(maxWait=ch_deadline, timeStamped=myclock)
+
+            # no response
+            if keych3 == None:
+                # fill with nans the reward related variables of the second choice object
+                if fruit_appear_first:
+                    wear_reward_probs = [np.nan, np.nan, np.nan, np.nan]
+                    wear_reward = np.nan
+                else:
+                    fruit_reward_probs = [np.nan, np.nan, np.nan, np.nan]
+                    fruit_reward = np.nan
+                presented_person.autoDraw = False
+                too_slow.draw()
+                win.update()
+                core.wait(1)
                 dataFile.write(
                     "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%s,%f ,%f,%f,%f,%f ,%s,%f,%f,%f ,%s,%s,%s ,%f,%f,%s ,%f,%f,%f\n"
                     % (
@@ -580,24 +579,24 @@ def mytrials(
                         subject_num,  # f
                         block_type,  # s
                         block + 1,  # f +1 - changes from 0 to 1
-                        t - trials_in_block * (block) + 1,  # f +1 - changes from 0 to 1
+                        t + 1,  # f +1 - changes from 0 to 1
                         # choice
-                        sampled_stim[0] + 1,  # f left_person
-                        int(fruit[sampled_stim[0]][1]),  # f left_person_fruit
-                        int(wear[sampled_stim[0]][1]),  # f left_person_wear
-                        sampled_stim[1] + 1,  # f right_person
-                        int(fruit[sampled_stim[1]][1]),  # f right_person_fruit
-                        int(wear[sampled_stim[1]][1]),  # f right_person_wear
+                        person_pair[0] + 1,  # f left_person
+                        int(fruit[person_pair[0]][1]),  # f left_person_fruit
+                        int(wear[person_pair[0]][1]),  # f left_person_wear
+                        person_pair[1] + 1,  # f right_person
+                        int(fruit[person_pair[1]][1]),  # f right_person_fruit
+                        int(wear[person_pair[1]][1]),  # f right_person_wear
                         selected_person + 1,  # f ch_person
                         int(fruit[selected_person][1]),  # f ch_person_fruit
                         int(wear[selected_person][1]),  # f ch_person_wear
-                        keys,  # s key1
+                        key1,  # s key1
                         RT1 * 1000,  # f rt1
                         # outcomes
-                        ProbsFruit[selected_person],  # f  exp_value_ch_fruit
-                        ResultFruit,  # f reward_fruit
-                        ProbsWear[selected_person],  # f exp_value_ch_wear
-                        ResultWear,  # f reward_ch_wear
+                        fruit_reward_probs[selected_person],  # f  exp_value_ch_fruit
+                        fruit_reward,  # f reward_fruit
+                        wear_reward_probs[selected_person],  # f exp_value_ch_wear
+                        wear_reward,  # f reward_ch_wear
                         key2,  # s key2
                         RT2 * 1000,  # f rt2
                         np.nan,  # f key3
@@ -605,80 +604,145 @@ def mytrials(
                         first_product,  # s first_product (fruit/wear)
                         second_product,  # s second_product (fruit/wear)
                         fruit_loc,  # s fruit_loc
-                        r1[t],  # f exp_value_fruit1
-                        r2[t],  # f exp_value_fruit2
+                        r1[t + block * number_of_trials_in_block],  # f exp_value_fruit1
+                        r2[t + block * number_of_trials_in_block],  # f exp_value_fruit2
                         wear_loc,  # s wear_loc
-                        r3[t],  # f exp_value_wear1
-                        r4[t],  # f exp_value_wear2
+                        r3[t + block * number_of_trials_in_block],  # f exp_value_wear1
+                        r4[t + block * number_of_trials_in_block],  # f exp_value_wear2
                         iti,  # f iti
                     )
                 )
-            continue
-        key3, RT3 = keych3[0]
-        # d456
-        draws(*Draw456)
-        rect(*SecRecDraw)
-        win.flip()
-        core.wait(fdbck_ch3)
-        won.pos = [0, Rpos2]
-        lost.pos = [0, Rpos2]
-        draws(*Draw456)
-        Reward2.draw()
-        rect(*SecRecDraw)
-        win.flip()
-        core.wait(outcome_ch3)
-        draws(*Draw456)
-        win.flip()
-        PresentedStim.autoDraw = False
+                continue
+            # wrong key or opposite key
+            elif (
+                (keych3[0][0] == "s" and second_object_loc != -3.0)
+                or (keych3[0][0] == "k" and second_object_loc != 3.0)
+                or (keych3[0][0] not in ("s", "k"))
+            ):
+                presented_person.autoDraw = False
+                wrong_key.draw()
+                win.update()
+                core.wait(1)
+                if fruit_appear_first == ["FruitFirst"]:
+                    wear_reward_probs = [np.nan, np.nan, np.nan, np.nan]
+                    wear_reward = np.nan
+                else:
+                    fruit_reward_probs = [np.nan, np.nan, np.nan, np.nan]
+                    fruit_reward = np.nan
+                    dataFile.write(
+                        "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%s,%f ,%f,%f,%f,%f ,%s,%f,%f,%f ,%s,%s,%s ,%f,%f,%s ,%f,%f,%f\n"
+                        % (
+                            # general
+                            subject_num,  # f
+                            block_type,  # s
+                            block + 1,  # f +1 - changes from 0 to 1
+                            t + 1,  # f +1 - changes from 0 to 1
+                            # choice
+                            person_pair[0] + 1,  # f left_person
+                            int(fruit[person_pair[0]][1]),  # f left_person_fruit
+                            int(wear[person_pair[0]][1]),  # f left_person_wear
+                            person_pair[1] + 1,  # f right_person
+                            int(fruit[person_pair[1]][1]),  # f right_person_fruit
+                            int(wear[person_pair[1]][1]),  # f right_person_wear
+                            selected_person + 1,  # f ch_person
+                            int(fruit[selected_person][1]),  # f ch_person_fruit
+                            int(wear[selected_person][1]),  # f ch_person_wear
+                            key1,  # s key1
+                            RT1 * 1000,  # f rt1
+                            # outcomes
+                            fruit_reward_probs[
+                                selected_person
+                            ],  # f  exp_value_ch_fruit
+                            fruit_reward,  # f reward_fruit
+                            wear_reward_probs[selected_person],  # f exp_value_ch_wear
+                            wear_reward,  # f reward_ch_wear
+                            key2,  # s key2
+                            RT2 * 1000,  # f rt2
+                            np.nan,  # f key3
+                            np.nan,  # f rt3
+                            first_product,  # s first_product (fruit/wear)
+                            second_product,  # s second_product (fruit/wear)
+                            fruit_loc,  # s fruit_loc
+                            r1[
+                                t + block * number_of_trials_in_block
+                            ],  # f exp_value_fruit1
+                            r2[
+                                t + block * number_of_trials_in_block
+                            ],  # f exp_value_fruit2
+                            wear_loc,  # s wear_loc
+                            r3[
+                                t + block * number_of_trials_in_block
+                            ],  # f exp_value_wear1
+                            r4[
+                                t + block * number_of_trials_in_block
+                            ],  # f exp_value_wear2
+                            iti,  # f iti
+                        )
+                    )
+                continue
+            key3, RT3 = keych3[0]
+            draws(*draw_second_stimulus)
+            rect(*second_rectangle_loc)
+            win.flip()
+            core.wait(wait_ch3)
+            won.pos = [0, second_reward_position]
+            lost.pos = [0, second_reward_position]
+            draws(*draw_second_stimulus)
+            second_reward.draw()
+            rect(*second_rectangle_loc)
+            win.flip()
+            core.wait(wait_outcome3)
+            draws(*draw_second_stimulus)
+            win.flip()
+            presented_person.autoDraw = False
 
-        dataFile.write(
-            "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%s,%f ,%f,%f,%f,%f ,%s,%f,%s,%f ,%s,%s,%s ,%f,%f,%s ,%f,%f,%f\n"
-            % (
-                # general
-                subject_num,  # f subject
-                block_type,  # s block_type
-                block + 1,  # f block_num : +1 - changes from 0 to 1
-                t
-                - trials_in_block * (block)
-                + 1,  # trial_num f +1 - changes from 0 to 1
-                # choice
-                sampled_stim[0] + 1,  # f left_person
-                int(fruit[sampled_stim[0]][1]),  # f left_person_fruit
-                int(wear[sampled_stim[0]][1]),  # f left_person_wear
-                sampled_stim[1] + 1,  # f right_person
-                int(fruit[sampled_stim[1]][1]),  # f right_person_fruit
-                int(wear[sampled_stim[1]][1]),  # f right_person_wear
-                selected_person + 1,  # f ch_person
-                int(fruit[selected_person][1]),  # f ch_person_fruit
-                int(wear[selected_person][1]),  # f ch_person_wear
-                keys,  # s key1
-                RT1 * 1000,  # f rt1
-                # outcomes
-                ProbsFruit[selected_person],  # f  exp_value_ch_fruit
-                ResultFruit,  # f reward_fruit
-                ProbsWear[selected_person],  # f exp_value_ch_wear
-                ResultWear,  # f reward_ch_wear
-                key2,  # s key2
-                RT2 * 1000,  # f rt2
-                key3,  # s key3
-                RT3 * 1000,  # f rt3
-                first_product,  # s first_product (fruit/wear)
-                second_product,  # s second_product (fruit/wear)
-                fruit_loc,  # s fruit_loc
-                r1[t],  # f exp_value_fruit1
-                r2[t],  # f exp_value_fruit2
-                wear_loc,  # s wear_loc
-                r3[t],  # f exp_value_wear1
-                r4[t],  # f exp_value_wear2
-                iti,  # f iti
+            # full print
+            dataFile.write(
+                "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%s,%f ,%f,%f,%f,%f ,%s,%f,%s,%f ,%s,%s,%s ,%f,%f,%s ,%f,%f,%f\n"
+                % (
+                    # general
+                    subject_num,  # f subject
+                    block_type,  # s block_type
+                    block + 1,  # f block_num : +1 - changes from 0 to 1
+                    t + 1,  # trial_num f +1 - changes from 0 to 1
+                    # choice
+                    person_pair[0] + 1,  # f left_person
+                    int(fruit[person_pair[0]][1]),  # f left_person_fruit
+                    int(wear[person_pair[0]][1]),  # f left_person_wear
+                    person_pair[1] + 1,  # f right_person
+                    int(fruit[person_pair[1]][1]),  # f right_person_fruit
+                    int(wear[person_pair[1]][1]),  # f right_person_wear
+                    selected_person + 1,  # f ch_person
+                    int(fruit[selected_person][1]),  # f ch_person_fruit
+                    int(wear[selected_person][1]),  # f ch_person_wear
+                    key1,  # s key1
+                    RT1 * 1000,  # f rt1
+                    # outcomes
+                    fruit_reward_probs[selected_person],  # f  exp_value_ch_fruit
+                    fruit_reward,  # f reward_fruit
+                    wear_reward_probs[selected_person],  # f exp_value_ch_wear
+                    wear_reward,  # f reward_ch_wear
+                    key2,  # s key2
+                    RT2 * 1000,  # f rt2
+                    key3,  # s key3
+                    RT3 * 1000,  # f rt3
+                    first_product,  # s first_product (fruit/wear)
+                    second_product,  # s second_product (fruit/wear)
+                    fruit_loc,  # s fruit_loc
+                    r1[t + block * number_of_trials_in_block],  # f exp_value_fruit1
+                    r2[t + block * number_of_trials_in_block],  # f exp_value_fruit2
+                    wear_loc,  # s wear_loc
+                    r3[t + block * number_of_trials_in_block],  # f exp_value_wear1
+                    r4[t + block * number_of_trials_in_block],  # f exp_value_wear2
+                    iti,  # f iti
+                )
             )
-        )
     return
 
 
-# the trials themselves.
-# each 'mytrial' run = one trial of the task.
-# Ntrls,iti,ch_deadline,iti: fdbck_ch1 ,fdbck_ch2,fdbck_ch3,outcome_ch2,outcome_ch3
+# This is the timeline including the instructions, quiz, training and test parts.
+
+# instructions
 num_instructions = 14
 for instruction in range(1, num_instructions + 1):
     test_instructions = visual.ImageStim(
@@ -691,6 +755,7 @@ for instruction in range(1, num_instructions + 1):
     win.update()
     event.waitKeys(keyList=["space", "s", "k"])
 
+# quiz
 start_quiz = visual.ImageStim(
     win,
     image="instructions/instructions_test/start_quiz" + ".png",
@@ -733,6 +798,7 @@ quiz5.draw()
 win.update()
 event.waitKeys(keyList=["k"])
 
+# training
 start_training = visual.ImageStim(
     win,
     image="instructions/instructions_test/start_training.png",
@@ -743,17 +809,43 @@ start_training.draw()
 win.update()
 event.waitKeys(keyList=["space"])
 
-mytrials(subject_num, "train", 2, 1, 6, 0.5, 0.5, 0.5, 1, 1)
+mytrials(
+    subject_num=subject_num,
+    block_type="train",
+    number_of_blocks=1,
+    number_of_trials_in_block=10,
+    iti=1,
+    ch_deadline=6,
+    wait_ch1=0.5,
+    wait_ch2=0.5,
+    wait_ch3=0.5,
+    wait_outcome2=1,
+    wait_outcome3=1,
+)
 start_test = visual.ImageStim(
     win,
     image="instructions/instructions_test/start_test.png",
     pos=[0, 0],
     interpolate=True,
 )
+
+# test
 start_test.draw()
 win.update()
 event.waitKeys(keyList=["space"])
-mytrials(subject_num, "test", 25, 1, 6, 0.5, 0.5, 0.5, 1, 1)
+mytrials(
+    subject_num=subject_num,
+    block_type="test",
+    number_of_blocks=5,
+    number_of_trials_in_block=40,
+    iti=1,
+    ch_deadline=6,
+    wait_ch1=0.5,
+    wait_ch2=0.5,
+    wait_ch3=0.5,
+    wait_outcome2=1,
+    wait_outcome3=1,
+)
 finish_test = visual.ImageStim(
     win,
     image="instructions/instructions_test/finish_test.png",
