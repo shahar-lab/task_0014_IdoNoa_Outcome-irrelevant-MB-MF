@@ -1,6 +1,7 @@
 # Outcome-irrelevant learning influence on Model based learning
-This task is based on <a href="https://www.nature.com/articles/s41467-019-08662-8">previous work by Rani Moran</a>.  and was coded by Shai Kahn.
-This task was built using <a href="https://www.psychopy.org/">psychopy</a>.
+This task is based on <a href="https://www.nature.com/articles/s41467-019-08662-8">previous work by Rani Moran</a>, and was coded by Shai Kahn.
+
+The task was built using <a href="https://www.psychopy.org/">psychopy</a>.
 
 The experiment starts when participants are told that they own a business and that the persons in the image below are their salespersons. 
 
