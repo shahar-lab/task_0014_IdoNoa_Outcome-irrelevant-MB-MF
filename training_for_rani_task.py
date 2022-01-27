@@ -9,7 +9,7 @@ import numpy as np
 monitor_size = monitors.Monitor("testMonitor").getSizePix()
 expInfo = {"subject": "999"}
 dlg = gui.DlgFromDict(expInfo, title="Two-armed bandit task")
-fileName = "training_for_ranitask_" + expInfo["subject"] + "_" + data.getDateStr()
+fileName = "training_for_rani_task_" + expInfo["subject"] + "_" + data.getDateStr()
 subject_num = int(expInfo["subject"])
 dataFile = open(
     fileName + ".csv", "w"

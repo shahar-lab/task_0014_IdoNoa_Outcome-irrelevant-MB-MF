@@ -9,7 +9,7 @@ dlg = gui.DlgFromDict(expInfo, title="Two-armed bandit task")  # update expInfo
 subject_num = int(expInfo["subject"])
 
 # create a text file to save data
-fileName = "ranitask" + expInfo["subject"] + "_" + data.getDateStr()
+fileName = "rani_task" + expInfo["subject"] + "_" + data.getDateStr()
 monitor_size = monitors.Monitor("testMonitor").getSizePix()
 dataFile = open(
     fileName + ".csv", "w"
