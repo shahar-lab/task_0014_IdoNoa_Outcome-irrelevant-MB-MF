@@ -15,10 +15,13 @@ Only after completing the training, they will continue to the test part.
 ![image](https://user-images.githubusercontent.com/51457131/151419034-20ab0bb5-af82-400c-832f-d1a21e907e30.png)
 
 In the test part (ranitask.py) participants have to choose on each trial between two offered salesperson. 
+
 ![image](https://user-images.githubusercontent.com/51457131/151417832-bc69efa9-89b9-4632-a498-d1de0851ba91.png)
+
 After selecting a salesperson, the objects of the chosen person will appear one after the other in a random order, marked by a red rectangle.
 When the rectangle appears around an object, the participant should press the 's' or 'k' key (according to the object's location) to discover whether it was sold. 
 Subjects can get a monetary bonus for successful sales.
+
 ![image](https://user-images.githubusercontent.com/51457131/151418001-b1a4232c-344d-43dd-9240-da6f7ab6c482.png)
 
 
