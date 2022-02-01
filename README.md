@@ -24,7 +24,7 @@ In the test part (ranitask.py) participants have to choose on each trial between
 ![image](https://user-images.githubusercontent.com/51457131/151417832-bc69efa9-89b9-4632-a498-d1de0851ba91.png)
 
 After selecting a salesperson, the objects of the chosen person will appear one after the other in a random order, marked by a red rectangle.
-When the rectangle appears around an object, the participant should press the 's' or 'k' key (according to the object's location) to discover whether it was sold. 
+When the rectangle appears around an object, the participant should press the 's' (left) or 'k' (right) key (according to the object's location) to discover whether it was sold. 
 
 Subjects can get a monetary bonus for successful sales.
 
