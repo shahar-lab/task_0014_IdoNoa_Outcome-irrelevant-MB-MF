@@ -4,7 +4,7 @@ training.py is self-contained and runs the model-training part.
 
 main.py builds upon the function trial.py and the utils.py functions and runs the RL task.
 
-The main task runs a trials loop in trial.py. 
+The main task runs a loop of trials based in trial.py. 
 
 Training part of main task is 10 trials in one block. 
 
