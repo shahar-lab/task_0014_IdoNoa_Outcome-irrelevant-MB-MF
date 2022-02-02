@@ -11,14 +11,15 @@ subject_num = int(expInfo["subject"])
 # create a text file to save data
 fileName = "rani_task" + expInfo["subject"] + "_" + data.getDateStr()
 monitor_size = monitors.Monitor("testMonitor").getSizePix()
-dataFile = open(
+data_file = open(
     fileName + ".csv", "w"
 )  # a simple text file with 'comma-separated-values'
-dataFile.write(
+
+data_file.write(
     "subject,block_type,block,trial, left_person,left_person_fruit,left_person_wear, right_person,right_person_fruit,right_person_wear, ch_person,ch_fruit,ch_wear,keypress1, rt1, exp_value_ch_fruit, reward_fruit, exp_value_ch_wear, reward_wear, keypress2, rt2, keypress3, rt3,first_product,second_product, fruit_location,exp_value_fruit1,exp_value_fruit2,wear_location,exp_value_wear1,exp_value_wear2,iti\n"
 )
 # create window display
-win = visual.Window(
+window = visual.Window(
     monitor="testMonitor",
     screen=0,
     units="deg",
@@ -26,7 +27,7 @@ win = visual.Window(
     fullscr=True,
     allowStencil=True,
 )
-win.mouseVisible = False
+window.mouseVisible = False
 
 # declaration of persons' and objects' pictures
 person_list = [
@@ -52,28 +53,31 @@ wear = [
 model = np.array(
     [[fruit[0], wear[0]], [fruit[1], wear[1]], [fruit[2], wear[2]], [fruit[3], wear[3]]]
 )
-# only pairs who share an object are valid, irrespictable of location
+# only pairs of persons who share an object are valid, irrespictable of location
 valid_pairs = np.array([[0, 2], [2, 0], [0, 3], [3, 0], [1, 2], [2, 1], [1, 3], [3, 1]])
 
+# locations in pixels units referring to left or right locations of objects
 left_right_locations = [
     3,
     -3,
-]  # locations in pixels units referring to left or right locations of objects
+]
+# initiation
 selected_person = None
 
 # declaration of visual components
-fixation = visual.TextStim(win, text="+", pos=[0, 0], color=(0, 0, 0))
-too_slow = visual.TextStim(win, text="Too Slow", pos=[0, 0], color=(0, 0, 0))
-wrong_key = visual.TextStim(win, text="Wrong Key", pos=[0, 0], color=(0, 0, 0))
+fixation = visual.TextStim(window, text="+", pos=[0, 0], color=(0, 0, 0))
+too_slow = visual.TextStim(window, text="Too Slow", pos=[0, 0], color=(0, 0, 0))
+wrong_key = visual.TextStim(window, text="Wrong Key", pos=[0, 0], color=(0, 0, 0))
 call_supervisor = visual.TextStim(
-    win, text="Call supervisor", pos=[0, 0], color=(0, 0, 0)
+    window, text="Call supervisor", pos=[0, 0], color=(0, 0, 0)
 )
 game_pause = visual.ImageStim(
-    win,
+    window,
     image="instructions/instructions_test/game_pause.png",
     pos=[0, 0],
     interpolate=True,
 )
+
 # random walk is counterbalanced according to subject_num
 if subject_num % 2 == 0:
     rwalk = np.genfromtxt("rndwalk/rndwalk2.csv", delimiter=",")
@@ -86,10 +90,18 @@ r4 = rwalk[3, :]
 
 # defining the rectangle used to mark selection
 def rect(x1, x2, y1, y2):
-    a = visual.Line(win, start=(x1, y1), end=(x2, y1), size=10, lineColor=[1.0, -1, -1])
-    b = visual.Line(win, start=(x1, y1), end=(x1, y2), size=10, lineColor=[1.0, -1, -1])
-    c = visual.Line(win, start=(x2, y2), end=(x2, y1), size=10, lineColor=[1.0, -1, -1])
-    d = visual.Line(win, start=(x2, y2), end=(x1, y2), size=10, lineColor=[1.0, -1, -1])
+    a = visual.Line(
+        window, start=(x1, y1), end=(x2, y1), size=10, lineColor=[1.0, -1, -1]
+    )
+    b = visual.Line(
+        window, start=(x1, y1), end=(x1, y2), size=10, lineColor=[1.0, -1, -1]
+    )
+    c = visual.Line(
+        window, start=(x2, y2), end=(x2, y1), size=10, lineColor=[1.0, -1, -1]
+    )
+    d = visual.Line(
+        window, start=(x2, y2), end=(x1, y2), size=10, lineColor=[1.0, -1, -1]
+    )
     a.draw()
     b.draw()
     c.draw()
@@ -105,7 +117,6 @@ def draws(one, two):
 
 
 # This function runs a loop of trials
-# number_of_trials,iti,ch_deadline,iti: wait_ch1 ,wait_ch2,wait_ch3,wait_outcome2,wait_outcome3
 def mytrials(
     subject_num,  # the serial number of the subject
     block_type,  # whether it is a training block or a test block
@@ -130,17 +141,18 @@ def mytrials(
         # making pauses on every start of block which is not the first
         if block != 0:
             game_pause.draw()
-            win.update()
+            window.update()
             event.waitKeys(keyList=["space"])
         # for loop running on each trial
         for t in range(number_of_trials_in_block):
             # aborting the experiment if escape is pressed
             keys = kb.getKeys(["escape"])
             if "escape" in keys:
-                win.close()
+                window.close()
                 core.quit()
             # get the current pair out of possible 8 pairs
             person_pair = valid_pairs[np.random.choice(8, 1)[0]]
+
             # draw randomly the locations of the fruit and of the wear
             fruit_loc_pxl = np.random.choice(left_right_locations)
             wear_loc_pxl = np.random.choice(left_right_locations)
@@ -155,45 +167,47 @@ def mytrials(
 
             # counterbalance of stimulus presentation - fruit shown first or wear first.
             fruit_appear_first = np.random.choice(2)
+
             # define the stimuli according to the raffled pair
             left_person = visual.ImageStim(
-                win, image=person_list[person_pair[0]], pos=[-6, 5], interpolate=True
+                window, image=person_list[person_pair[0]], pos=[-6, 5], interpolate=True
             )
             right_person = visual.ImageStim(
-                win, image=person_list[person_pair[1]], pos=[6, 5], interpolate=True
+                window, image=person_list[person_pair[1]], pos=[6, 5], interpolate=True
             )
+
             fruit_stimulus = visual.ImageStim(
-                win, image=fruit[0], pos=[fruit_loc_pxl, 0], size=2
+                window, image=None, pos=[fruit_loc_pxl, 0], size=2
             )
             fruit_cover = visual.ImageStim(
-                win, image="images/fruit_cvr.png", pos=[fruit_loc_pxl, 0]
+                window, image="images/fruit_cvr.png", pos=[fruit_loc_pxl, 0]
             )
             wear_stimulus = visual.ImageStim(
-                win, image=wear[0], pos=[wear_loc_pxl, -5], size=2
+                window, image=None, pos=[wear_loc_pxl, -5], size=2
             )
             wear_cover = visual.ImageStim(
-                win, image="images/wear_cvr.png", pos=[wear_loc_pxl, -5]
+                window, image="images/wear_cvr.png", pos=[wear_loc_pxl, -5]
             )
 
             fruit_green_base = visual.ImageStim(
-                win, image="images/greenbase.png", pos=[-fruit_loc_pxl, -0.5]
+                window, image="images/greenbase.png", pos=[-fruit_loc_pxl, -0.5]
             )
             wear_green_base = visual.ImageStim(
-                win, image="images/greenbase.png", pos=[-wear_loc_pxl, -6]
+                window, image="images/greenbase.png", pos=[-wear_loc_pxl, -6]
             )
 
             # define won/lost feedback, some stimuli
             won = visual.ImageStim(
-                win, image="images/rw.jpg", pos=[0, 0], size=2, interpolate=True
+                window, image="images/rw.jpg", pos=[0, 0], size=2, interpolate=True
             )
             lost = visual.ImageStim(
-                win, image="images/ur.jpg", pos=[0, 0], size=2, interpolate=True
+                window, image="images/ur.jpg", pos=[0, 0], size=2, interpolate=True
             )
 
             # draw the stimuli and update the window
-            win.flip(clearBuffer=True)
+            window.flip(clearBuffer=True)
             fixation.draw()
-            win.update()
+            window.update()
             core.wait(iti)
             left_person.draw()
             right_person.draw()
@@ -202,7 +216,7 @@ def mytrials(
             fruit_green_base.draw()
             wear_green_base.draw()
             rect(-0.7, 0.7, 0.3, 0.7)
-            win.update()
+            window.update()
             myclock = core.Clock()
 
             # wait for person choice
@@ -211,9 +225,9 @@ def mytrials(
             # if no response was pressed, show "Too Slow" and save current trial to csv
             if keysEvent == None:
                 too_slow.draw()
-                win.update()
+                window.update()
                 core.wait(1)
-                dataFile.write(
+                data_file.write(
                     "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f ,%f,%f,%f,%f ,%f,%f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f,%f\n"
                     % (
                         # general
@@ -273,7 +287,7 @@ def mytrials(
 
             # if space was pressed it means the participants wanted a break
             elif key1 == "space":
-                dataFile.write(
+                data_file.write(
                     "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f ,%f,%f,%f,%f ,%f,%f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f,%f\n"
                     % (
                         # general
@@ -314,7 +328,7 @@ def mytrials(
                     )
                 )
                 call_supervisor.draw()
-                win.update()
+                window.update()
                 event.waitKeys(keyList=["space"])
                 core.wait(2)
                 continue
@@ -322,9 +336,9 @@ def mytrials(
             # if another key was chosen it means a wrong key was pressed
             else:
                 wrong_key.draw()
-                win.update()
+                window.update()
                 core.wait(1)
-                dataFile.write(
+                data_file.write(
                     "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f ,%f,%f,%f,%f ,%f,%f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f,%f\n"
                     % (
                         # general
@@ -431,13 +445,13 @@ def mytrials(
             fruit_cover.draw()
             wear_cover.draw()
             rect(-0.7, 0.7, 0.3, 0.7)
-            win.flip()
+            window.flip()
             core.wait(wait_ch1)
             fruit_cover.draw()
             wear_cover.draw()
             rect(*first_rectangle_loc)
-            win.callOnFlip(myclock.reset)
-            win.flip()
+            window.callOnFlip(myclock.reset)
+            window.flip()
 
             # wait for second keypress
             keych2 = event.waitKeys(maxWait=ch_deadline, timeStamped=myclock)
@@ -445,10 +459,10 @@ def mytrials(
             if keych2 == None:
                 presented_person.autoDraw = False
                 too_slow.draw()
-                win.update()
+                window.update()
                 core.wait(1)
                 # write the trial data and continue to the next trial
-                dataFile.write(
+                data_file.write(
                     "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%s,%f ,%f,%f,%f,%f ,%f,%f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f,%f\n"
                     % (
                         # general
@@ -497,9 +511,9 @@ def mytrials(
             ):
                 presented_person.autoDraw = False
                 wrong_key.draw()
-                win.update()
+                window.update()
                 core.wait(1)
-                dataFile.write(
+                data_file.write(
                     "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%s,%f ,%f,%f,%f,%f ,%f,%f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%f,%f,%f\n"
                     % (
                         # general
@@ -545,7 +559,7 @@ def mytrials(
             # draw first object
             draws(*draw_first_object)
             rect(*first_rectangle_loc)
-            win.flip()
+            window.flip()
             core.wait(wait_ch2)
             draws(*draw_first_object)
             # defining the location of the reward
@@ -553,13 +567,13 @@ def mytrials(
             lost.pos = [0, first_reward_position]
             first_reward.draw()
             rect(*first_rectangle_loc)
-            win.flip()
+            window.flip()
             core.wait(wait_outcome2)
             # d3
             draws(*draw_covers)
             rect(*second_rectangle_loc)
-            win.callOnFlip(myclock.reset)
-            win.flip()
+            window.callOnFlip(myclock.reset)
+            window.flip()
 
             # wait for third keypress
             keych3 = event.waitKeys(maxWait=ch_deadline, timeStamped=myclock)
@@ -575,9 +589,9 @@ def mytrials(
                     fruit_reward = np.nan
                 presented_person.autoDraw = False
                 too_slow.draw()
-                win.update()
+                window.update()
                 core.wait(1)
-                dataFile.write(
+                data_file.write(
                     "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%s,%f ,%f,%f,%f,%f ,%s,%f,%f,%f ,%s,%s,%s ,%f,%f,%s ,%f,%f,%f\n"
                     % (
                         # general
@@ -626,7 +640,7 @@ def mytrials(
             ):
                 presented_person.autoDraw = False
                 wrong_key.draw()
-                win.update()
+                window.update()
                 core.wait(1)
                 if fruit_appear_first == ["FruitFirst"]:
                     wear_reward_probs = [np.nan, np.nan, np.nan, np.nan]
@@ -634,7 +648,7 @@ def mytrials(
                 else:
                     fruit_reward_probs = [np.nan, np.nan, np.nan, np.nan]
                     fruit_reward = np.nan
-                    dataFile.write(
+                    data_file.write(
                         "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%s,%f ,%f,%f,%f,%f ,%s,%f,%f,%f ,%s,%s,%s ,%f,%f,%s ,%f,%f,%f\n"
                         % (
                             # general
@@ -688,21 +702,21 @@ def mytrials(
             key3, RT3 = keych3[0]
             draws(*draw_second_stimulus)
             rect(*second_rectangle_loc)
-            win.flip()
+            window.flip()
             core.wait(wait_ch3)
             won.pos = [0, second_reward_position]
             lost.pos = [0, second_reward_position]
             draws(*draw_second_stimulus)
             second_reward.draw()
             rect(*second_rectangle_loc)
-            win.flip()
+            window.flip()
             core.wait(wait_outcome3)
             draws(*draw_second_stimulus)
-            win.flip()
+            window.flip()
             presented_person.autoDraw = False
 
             # full print
-            dataFile.write(
+            data_file.write(
                 "%f,%s,%f,%f, %f,%f,%f ,%f,%f,%f ,%f,%f,%f ,%s,%f ,%f,%f,%f,%f ,%s,%f,%s,%f ,%s,%s,%s ,%f,%f,%s ,%f,%f,%f\n"
                 % (
                     # general
@@ -751,67 +765,67 @@ def mytrials(
 num_instructions = 14
 for instruction in range(1, num_instructions + 1):
     test_instructions = visual.ImageStim(
-        win,
+        window,
         image="instructions/instructions_test/Test" + str(instruction) + ".png",
         pos=[0, 0],
         interpolate=True,
     )
     test_instructions.draw()
-    win.update()
+    window.update()
     event.waitKeys(keyList=["space", "s", "k"])
 
 # quiz
 start_quiz = visual.ImageStim(
-    win,
+    window,
     image="instructions/instructions_test/start_quiz" + ".png",
     pos=[0, 0],
     interpolate=True,
 )
 start_quiz.draw()
-win.update()
+window.update()
 event.waitKeys(keyList=["space"])
 quiz1 = visual.ImageStim(
-    win, image="instructions/quiz/quiz1" + ".png", pos=[0, 0], interpolate=True,
+    window, image="instructions/quiz/quiz1" + ".png", pos=[0, 0], interpolate=True,
 )
 quiz1.draw()
-win.update()
+window.update()
 event.waitKeys(keyList=["s"])
 
 quiz2 = visual.ImageStim(
-    win, image="instructions/quiz/quiz2" + ".png", pos=[0, 0], interpolate=True,
+    window, image="instructions/quiz/quiz2" + ".png", pos=[0, 0], interpolate=True,
 )
 quiz2.draw()
-win.update()
+window.update()
 event.waitKeys(keyList=["s"])
 quiz3 = visual.ImageStim(
-    win, image="instructions/quiz/quiz3" + ".png", pos=[0, 0], interpolate=True,
+    window, image="instructions/quiz/quiz3" + ".png", pos=[0, 0], interpolate=True,
 )
 quiz3.draw()
-win.update()
+window.update()
 event.waitKeys(keyList=["k"])
 quiz4 = visual.ImageStim(
-    win, image="instructions/quiz/quiz4" + ".png", pos=[0, 0], interpolate=True,
+    window, image="instructions/quiz/quiz4" + ".png", pos=[0, 0], interpolate=True,
 )
 quiz4.draw()
-win.update()
+window.update()
 event.waitKeys(keyList=["s"])
 
 quiz5 = visual.ImageStim(
-    win, image="instructions/quiz/quiz5" + ".png", pos=[0, 0], interpolate=True,
+    window, image="instructions/quiz/quiz5" + ".png", pos=[0, 0], interpolate=True,
 )
 quiz5.draw()
-win.update()
+window.update()
 event.waitKeys(keyList=["k"])
 
 # training
 start_training = visual.ImageStim(
-    win,
+    window,
     image="instructions/instructions_test/start_training.png",
     pos=[0, 0],
     interpolate=True,
 )
 start_training.draw()
-win.update()
+window.update()
 event.waitKeys(keyList=["space"])
 
 mytrials(
@@ -828,7 +842,7 @@ mytrials(
     wait_outcome3=1,
 )
 start_test = visual.ImageStim(
-    win,
+    window,
     image="instructions/instructions_test/start_test.png",
     pos=[0, 0],
     interpolate=True,
@@ -836,7 +850,7 @@ start_test = visual.ImageStim(
 
 # test
 start_test.draw()
-win.update()
+window.update()
 event.waitKeys(keyList=["space"])
 mytrials(
     subject_num=subject_num,
@@ -852,11 +866,11 @@ mytrials(
     wait_outcome3=1,
 )
 finish_test = visual.ImageStim(
-    win,
+    window,
     image="instructions/instructions_test/finish_test.png",
     pos=[0, 0],
     interpolate=True,
 )
 finish_test.draw()
-win.update()
+window.update()
 event.waitKeys(keyList=["space"])
