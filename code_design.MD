@@ -8,7 +8,7 @@ The main task runs a loop of trials based in trial.py.
 
 Training part of main task is 10 trials in one block. 
 
-Test part of main task is 50 trials in each of 4 blocks so 200 trials in total.
+Test part of main task is 50 trials in each of 5 blocks so 200 trials in total.
 
 At the end of each block participants have a break which they can terminate at their own time (game_pause_func in utils.py)
 
