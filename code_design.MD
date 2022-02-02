@@ -1,6 +1,7 @@
 This repository includes two tasks: training.py and main.py
 
 training.py is self-contained and runs the model-training part.
+
 main.py builds upon the function trial.py and the utils.py functions and runs the RL task.
 
 The main task runs a trials loop in trial.py. 
