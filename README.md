@@ -11,7 +11,7 @@ The experiment starts when participants are told that they own a business and th
 
 As can be seen in the image, each salesperson is able to sell the objects appearing below him. 
 
-The code starts with a training part (training_for_rani_task.py), in which the participants learn the model of the task. 
+The code starts with a training part (training.py), in which the participants learn the model of the task. 
 
 Specifically, they are shown each training trial a salesperson with two objects, that only one of which is being sold by this person.
 Subjects need to make 16 consecutive correct answers regarding which object is being sold by the shown sales person, in less than 2.5 seconds.
@@ -19,7 +19,7 @@ Only after completing the training, they will continue to the test part.
 
 ![image](https://user-images.githubusercontent.com/51457131/151419034-20ab0bb5-af82-400c-832f-d1a21e907e30.png)
 
-In the test part (ranitask.py) participants have to choose on each trial between two offered salesperson. 
+In the test part (main.py) participants have to choose on each trial between two offered salesperson. 
 
 ![image](https://user-images.githubusercontent.com/51457131/151417832-bc69efa9-89b9-4632-a498-d1de0851ba91.png)
 
