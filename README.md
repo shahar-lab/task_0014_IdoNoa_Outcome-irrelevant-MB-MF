@@ -5,7 +5,7 @@ The task was built using <a href="https://www.psychopy.org/">psychopy</a>.
 
 Check code_design and data_legend files for further explanations.
 
-The experiment starts when participants are told that they own a business and that the persons in the image below are their salespersons. 
+The experiment starts with participants being told that they own a business and that the persons in the image below are their salespersons. 
 
 ![image](https://user-images.githubusercontent.com/51457131/151413177-18bb9da4-a6cb-44c3-b244-d9eff4a72475.png)
 
