@@ -3,6 +3,7 @@ from psychopy import core, visual, gui, data, event, clock, monitors
 from psychopy.hardware import keyboard
 import numpy as np
 import pandas as pd
+from pylsl import StreamInfo, StreamOutlet
 
 
 def game_pause_func(window, game_pause):
@@ -429,6 +430,27 @@ def draw_reward(
         wear_reward_stimuli,
         wear_reward_probs,
     )
+
+
+"""
+Sending triggers from psychopy to the LabStreamingLayer
+"""
+
+
+def init_eye_tracker():
+    # Set up LabStreamingLayer stream.
+    info = StreamInfo(
+        name="example_stream",
+        type="Markers",
+        channel_count=1,
+        channel_format="int32",
+        source_id="example_stream_001",
+    )
+    outlet = StreamOutlet(info)  # Broadcast the stream.
+    return info,outlet
+
+def trigger_eye_tracker(outlet,value):
+    outlet.push_sample(value)
 
 
 def wrong_key_func(window, wrong_key):
