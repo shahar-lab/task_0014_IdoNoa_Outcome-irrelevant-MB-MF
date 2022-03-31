@@ -156,7 +156,7 @@ def mytrials(window, params, data_file):
             # abort trial if no response
             if keych2 == None:
                 presented_person.autoDraw = False  # remove presented person
-                too_slow_func(window, too_slow, data_file_vars)
+                too_slow_func(window, too_slow)
                 save_data(data_file, data_file_vars)
                 continue
             # check if wrong key or opposite key was pressed

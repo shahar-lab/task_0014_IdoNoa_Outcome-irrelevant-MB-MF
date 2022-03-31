@@ -3,6 +3,7 @@ from psychopy.hardware import keyboard
 import random, serial, time
 from random import sample
 import numpy as np
+from utils import *
 
 
 # create a text file to save data
@@ -81,6 +82,7 @@ repetitions = 0
 while continue_training == True:  # this loop does the training
     repetitions += 1
     for trial in range(number_of_trials):
+        abort(window)
         random_locs = np.random.choice([4, -4], 2, replace=False)
         sampled_person = visual.ImageStim(window, image=human_loop[trial], pos=[0, 5])
         correct_stimulus = visual.ImageStim(
