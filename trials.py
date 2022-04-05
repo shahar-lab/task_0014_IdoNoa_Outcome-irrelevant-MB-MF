@@ -5,7 +5,7 @@ from utils import *
 import numpy as np
 
 # This function runs a loop of trials
-def mytrials(window, params, data_file):
+def mytrials(window, params, data_file, outlet):
     subject_num = params["subject_num"]
     block_type = params["block_type"]
     number_of_blocks = params["number_of_blocks"]
@@ -44,7 +44,7 @@ def mytrials(window, params, data_file):
             # get stimuli
             stimuli_dict = stimuli(window, person_list, valid_pairs, x_axis_locations)
             draw_stimuli_ch1(window, fixation, stimuli_dict, iti)
-
+            trigger_eye_tracker(outlet, "1")
             # define data
             data_file_vars = {
                 "subject_num": subject_num,

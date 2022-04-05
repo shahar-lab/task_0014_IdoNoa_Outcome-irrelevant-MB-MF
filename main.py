@@ -5,6 +5,9 @@ from utils import *
 from trials import *
 import numpy as np
 
+# init eye_tracker
+info, outlet = init_eye_tracker()
+
 # get subject_num
 expInfo = {"subject": "999"}
 dlg = gui.DlgFromDict(expInfo, title="Two-armed bandit task")  # update expInfo
@@ -143,7 +146,7 @@ params_test = {
     "game_pause": game_pause,
     "x_axis_locations": x_axis_locations,
 }
-mytrials(window, params_test, data_file)
+mytrials(window, params_test, data_file, outlet)
 
 finish_test(window)
 
